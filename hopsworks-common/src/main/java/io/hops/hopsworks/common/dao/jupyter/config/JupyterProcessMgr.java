@@ -51,6 +51,7 @@ import io.hops.hopsworks.common.proxies.client.HttpClient;
 import io.hops.hopsworks.common.util.OSProcessExecutor;
 import io.hops.hopsworks.common.util.ProcessDescriptor;
 import io.hops.hopsworks.common.util.ProcessResult;
+import io.hops.hopsworks.common.util.ProjectUtils;
 import io.hops.hopsworks.common.util.Settings;
 import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.restutils.RESTCodes;
@@ -113,6 +114,8 @@ public class JupyterProcessMgr implements JupyterManager {
   private OSProcessExecutor osProcessExecutor;
   @EJB
   private HttpClient httpClient;
+  @EJB
+  private ProjectUtils projectUtils;
   
   private String jupyterHost;
   
@@ -138,7 +141,7 @@ public class JupyterProcessMgr implements JupyterManager {
     String secretDir = settings.getStagingDir() + Settings.PRIVATE_DIRS + js.getSecret();
 
     String token = TokenGenerator.generateToken(TOKEN_LENGTH);
-    Long pid = 0l;
+    String cid = "";
     
     // The Jupyter Notebook is running at: http://localhost:8888/?token=c8de56fa4deed24899803e93c227592aef6538f93025fe01
     int maxTries = 5;
@@ -153,7 +156,7 @@ public class JupyterProcessMgr implements JupyterManager {
           .addCommand("start")
           .addCommand(jp.getNotebookPath())
           .addCommand(settings.getHadoopSymbolicLinkDir() + "-" + settings.getHadoopVersion())
-          .addCommand(settings.getJavaHome())
+          .addCommand(hdfsUser)
           .addCommand(settings.getAnacondaProjectDir(project))
           .addCommand(port.toString())
           .addCommand(hdfsUser + "-" + port + ".log")
@@ -162,6 +165,7 @@ public class JupyterProcessMgr implements JupyterManager {
           .addCommand(hdfsUser)
           .addCommand(token)
           .addCommand(js.getMode().getValue())
+          .addCommand(projectUtils.getFullDockerImageName(project))
           .redirectErrorStream(true)
           .setCurrentWorkingDirectory(new File(jp.getNotebookPath()))
           .setWaitTimeout(20L, TimeUnit.SECONDS)
@@ -173,16 +177,15 @@ public class JupyterProcessMgr implements JupyterManager {
         ProcessResult processResult = osProcessExecutor.execute(processDescriptor);
         if (processResult.getExitCode() != 0) {
           String errorMsg = "Could not start Jupyter server. Exit code: " + processResult.getExitCode()
-              + " Error: " + processResult.getStdout();
+              + " Error: stdout: " + processResult.getStdout() + " stderr: " + processResult.getStderr();
           LOGGER.log(Level.SEVERE, errorMsg);
           throw new IOException(errorMsg);
         }
         // Read the pid for Jupyter Notebook
-        String pidContents = com.google.common.io.Files.readFirstLine(
+        cid = com.google.common.io.Files.readFirstLine(
             new File(pidfile), Charset.defaultCharset());
-        pid = Long.parseLong(pidContents);
 
-        return new JupyterDTO(port, token, pid, secretConfig, jp.getCertificatesDir());
+        return new JupyterDTO(port, token, cid, secretConfig, jp.getCertificatesDir());
       } catch (Exception ex) {
         LOGGER.log(Level.SEVERE, "Problem executing shell script to start Jupyter server", ex);
         maxTries--;
@@ -199,15 +202,15 @@ public class JupyterProcessMgr implements JupyterManager {
     // Nothing to do as the start is blocking
   }
 
-  public void stopOrphanedJupyterServer(Long pid, Integer port) throws ServiceException {
-    stopJupyterServer(null, null, "Orphaned", "", pid, port);
+  public void stopOrphanedJupyterServer(String cid, Integer port) throws ServiceException {
+    stopJupyterServer(null, null, "Orphaned", "", cid, port);
   }
 
   @Override
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-  public void stopJupyterServer(Project project, Users user, String hdfsUsername, String jupyterHomePath, Long pid,
+  public void stopJupyterServer(Project project, Users user, String hdfsUsername, String jupyterHomePath, String cid,
       Integer port) throws ServiceException {
-    if (jupyterHomePath == null || pid == null || port == null) {
+    if (jupyterHomePath == null || cid == null || port == null) {
       throw new IllegalArgumentException("Invalid arguments when stopping the Jupyter Server.");
     }
     // 1. Remove jupyter settings from the DB for this notebook first. If this fails, keep going to kill the notebook
@@ -224,14 +227,13 @@ public class JupyterProcessMgr implements JupyterManager {
     }
     int exitValue = 0;
     Integer id = 1;
-    
     ProcessDescriptor.Builder pdBuilder = new ProcessDescriptor.Builder()
         .addCommand("/usr/bin/sudo")
         .addCommand(prog)
         .addCommand("kill")
         .addCommand(jupyterHomePath)
-        .addCommand(pid.toString())
-        .addCommand(port.toString())
+        .addCommand(cid)
+        .addCommand(hdfsUsername)
         .setWaitTimeout(10L, TimeUnit.SECONDS);
     
     if (!LOGGER.isLoggable(Level.FINE)) {
@@ -292,35 +294,35 @@ public class JupyterProcessMgr implements JupyterManager {
 
     File file = new File(Settings.JUPYTER_PIDS);
 
-    List<Long> pidsRunning = new ArrayList<>();
+    List<String> cidsRunning = new ArrayList<>();
     try {
       Scanner scanner = new Scanner(file);
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();
-        pidsRunning.add(Long.parseLong(line));
+        cidsRunning.add(line);
       }
     } catch (FileNotFoundException e) {
       LOGGER.warning("Invalid pids in file: " + Settings.JUPYTER_PIDS);
     }
 
-    List<Long> pidsOrphaned = new ArrayList<>();
-    pidsOrphaned.addAll(pidsRunning);
+    List<String> cidsOrphaned = new ArrayList<>();
+    cidsOrphaned.addAll(cidsRunning);
 
-    for (Long pid : pidsRunning) {
-      boolean foundPid = false;
+    for (String cid : cidsRunning) {
+      boolean foundCid = false;
       for (JupyterProject jp : allNotebooks) {
-        if (pid == jp.getPid()) {
-          foundPid = true;
+        if (cid == jp.getCid()) {
+          foundCid = true;
         }
-        if (foundPid) {
-          pidsOrphaned.remove(pid);
+        if (foundCid) {
+          cidsOrphaned.remove(cid);
         }
       }
     }
 
-    for (Long pid : pidsOrphaned) {
+    for (String cid : cidsOrphaned) {
       JupyterProject jp = new JupyterProject();
-      jp.setPid(pid);
+      jp.setCid(cid);
       jp.setPort(0);
       jp.setHdfsUserId(-1);
       allNotebooks.add(jp);
