@@ -1599,15 +1599,15 @@ public class Settings implements Serializable {
         ":" + KIBANA_PORT;
   }
   
-  public synchronized String getKibanaAppUri(String jwtToken) {
-    checkCache();
-    return getKibanaUri() + "/app/kibana?" + ELASTIC_SETTINGS.getElasticJWTURLParameter()
-        + "=" + jwtToken + "&";
-  }
-  
   public synchronized String getKibanaAppUri() {
     checkCache();
-    return getKibanaUri() + "/app/kibana?";
+    return "/hopsworks-api/kibana/app/kibana?";
+  }
+  
+  public synchronized String getKibanaAppUri(String jwtToken) {
+    checkCache();
+    return  getKibanaAppUri() + ELASTIC_SETTINGS.getElasticJWTURLParameter()
+        + "=" + jwtToken + "&";
   }
   
   // Zookeeper
