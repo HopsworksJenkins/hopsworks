@@ -23,11 +23,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import io.hops.hopsworks.common.provenance.app.dto.ProvAppStateDTO;
 import io.hops.hopsworks.common.provenance.core.Provenance;
-import io.hops.hopsworks.common.provenance.core.apiToElastic.ProvParser;
+import io.hops.hopsworks.common.provenance.core.ProvParser;
 import io.hops.hopsworks.common.provenance.core.elastic.BasicElasticHit;
 import io.hops.hopsworks.common.provenance.util.ProvHelper;
 import io.hops.hopsworks.common.provenance.state.ProvTree;
-import io.hops.hopsworks.common.provenance.state.apiToElastic.ProvSParser;
+import io.hops.hopsworks.common.provenance.state.ProvSParser;
 import io.hops.hopsworks.exceptions.ProvenanceException;
 import io.hops.hopsworks.restutils.RESTCodes;
 

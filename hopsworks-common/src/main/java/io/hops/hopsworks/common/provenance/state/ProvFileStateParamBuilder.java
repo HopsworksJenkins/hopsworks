@@ -15,10 +15,9 @@
  */
 package io.hops.hopsworks.common.provenance.state;
 
-import io.hops.hopsworks.common.provenance.app.apiToElastic.ProvAParser;
+import io.hops.hopsworks.common.provenance.app.ProvAParser;
 import io.hops.hopsworks.common.provenance.core.Provenance;
-import io.hops.hopsworks.common.provenance.core.apiToElastic.ProvParser;
-import io.hops.hopsworks.common.provenance.state.apiToElastic.ProvSParser;
+import io.hops.hopsworks.common.provenance.core.ProvParser;
 import io.hops.hopsworks.exceptions.ProvenanceException;
 import io.hops.hopsworks.restutils.RESTCodes;
 import org.elasticsearch.search.sort.SortOrder;

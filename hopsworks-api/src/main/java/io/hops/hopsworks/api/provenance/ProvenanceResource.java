@@ -30,7 +30,6 @@ import io.hops.hopsworks.common.provenance.core.dto.ProvTypeDTO;
 import io.hops.hopsworks.common.provenance.state.ProvFileStateParamBuilder;
 import io.hops.hopsworks.common.provenance.state.dto.ProvStateListDTO;
 import io.hops.hopsworks.common.provenance.util.dto.WrapperDTO;
-import io.hops.hopsworks.exceptions.ElasticException;
 import io.hops.hopsworks.exceptions.ProvenanceException;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
 import io.hops.hopsworks.restutils.RESTCodes;
@@ -112,7 +111,7 @@ public class ProvenanceResource {
   public Response getFileStates(
     @BeanParam ProvFileStateBeanParam params,
     @BeanParam Pagination pagination,
-    @Context HttpServletRequest req) throws ElasticException, ProvenanceException {
+    @Context HttpServletRequest req) throws ProvenanceException {
     ProvFileStateParamBuilder paramBuilder = new ProvFileStateParamBuilder()
       .withProjectInodeId(project.getInode().getId())
       .withQueryParamFileStateFilterBy(params.getFileStateFilterBy())
@@ -131,7 +130,7 @@ public class ProvenanceResource {
   
   private Response getFileStates(Project project,
     ProvFileStateParamBuilder params, FileStructReturnType returnType)
-    throws ProvenanceException, ElasticException {
+    throws ProvenanceException {
     switch (returnType) {
       case LIST:
         ProvStateListDTO listResult = stateProvCtrl.provFileStateList(project, params);

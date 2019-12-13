@@ -13,9 +13,9 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package io.hops.hopsworks.common.provenance.state.apiToElastic;
+package io.hops.hopsworks.common.provenance.state;
 
-import io.hops.hopsworks.common.provenance.core.apiToElastic.ProvParser;
+import io.hops.hopsworks.common.provenance.core.ProvParser;
 import io.hops.hopsworks.exceptions.ProvenanceException;
 import io.hops.hopsworks.restutils.RESTCodes;
 import org.elasticsearch.search.sort.SortOrder;
@@ -26,14 +26,7 @@ import java.util.logging.Level;
 
 public class ProvSParser {
   public enum BaseField implements ProvParser.ElasticField {
-    CREATE_TIMESTAMP;
-    @Override
-    public String toString() {
-      return name().toLowerCase();
-    }
-  }
-  
-  public enum AuxField implements ProvParser.ElasticField {
+    CREATE_TIMESTAMP,
     R_CREATE_TIMESTAMP;
     @Override
     public String toString() {
@@ -54,7 +47,7 @@ public class ProvSParser {
     ML_ID(ProvParser.BaseField.ML_ID, new ProvParser.StringValParser()),
     PARTITION_ID(ProvParser.AuxField.PARTITION_ID, new ProvParser.LongValParser()),
     CREATE_TIMESTAMP(BaseField.CREATE_TIMESTAMP, new ProvParser.LongValParser()),
-    R_CREATE_TIMESTAMP(AuxField.R_CREATE_TIMESTAMP, new ProvParser.StringValParser()),
+    R_CREATE_TIMESTAMP(BaseField.R_CREATE_TIMESTAMP, new ProvParser.StringValParser()),
     ENTRY_TYPE(ProvParser.BaseField.ENTRY_TYPE, new ProvParser.StringValParser());
   
     ProvParser.ElasticField elasticField;

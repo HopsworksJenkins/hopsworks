@@ -16,11 +16,12 @@
 package io.hops.hopsworks.common.provenance.app;
 
 import io.hops.hopsworks.common.provenance.core.Provenance;
-import io.hops.hopsworks.common.provenance.core.apiToElastic.ProvParser;
+import io.hops.hopsworks.common.provenance.core.ProvParser;
 import io.hops.hopsworks.common.provenance.core.elastic.ProvElasticController;
 import io.hops.hopsworks.common.provenance.core.elastic.ElasticHelper;
 import io.hops.hopsworks.common.provenance.core.elastic.ElasticHitsHandler;
 import io.hops.hopsworks.common.provenance.app.dto.ProvAppStateElastic;
+import io.hops.hopsworks.common.provenance.util.ProvHelper;
 import io.hops.hopsworks.common.provenance.util.functional.CheckedFunction;
 import io.hops.hopsworks.common.provenance.util.functional.CheckedSupplier;
 import io.hops.hopsworks.common.util.Settings;
@@ -51,15 +52,20 @@ public class ProvAppController {
   
   public Map<String, Map<Provenance.AppState, ProvAppStateElastic>> provAppState(
     Map<String, ProvParser.FilterVal> appStateFilters)
-    throws ProvenanceException, ElasticException {
+    throws ProvenanceException {
     CheckedSupplier<SearchRequest, ProvenanceException> srF =
       ElasticHelper.scrollingSearchRequest(
         Settings.ELASTIC_INDEX_APP_PROVENANCE,
         settings.getElasticDefaultScrollPageSize())
         .andThen(provAppStateQB(appStateFilters));
     SearchRequest request = srF.get();
-    Pair<Long, Map<String, Map<Provenance.AppState, ProvAppStateElastic>>> searchResult
-      = client.searchScrolling(request, appStateParser());
+    Pair<Long, Map<String, Map<Provenance.AppState, ProvAppStateElastic>>> searchResult;
+    try {
+      searchResult = client.searchScrolling(request, appStateParser());
+    } catch (ElasticException e) {
+      String msg = "provenance - elastic query problem";
+      throw ProvHelper.fromElastic(e, msg, msg + " - app state");
+    }
     return searchResult.getValue1();
   }
   

@@ -15,8 +15,9 @@
  */
 package io.hops.hopsworks.common.provenance.util;
 
-import io.hops.hopsworks.common.provenance.core.apiToElastic.ProvParser;
+import io.hops.hopsworks.common.provenance.core.ProvParser;
 import io.hops.hopsworks.common.provenance.util.functional.CheckedFunction;
+import io.hops.hopsworks.exceptions.ElasticException;
 import io.hops.hopsworks.exceptions.ProvenanceException;
 import io.hops.hopsworks.restutils.RESTCodes;
 
@@ -131,8 +132,18 @@ public class ProvHelper {
     };
   }
   
+  //**********************Exception handling helper methods**********************
+  public static ProvenanceException fromElastic(ElasticException e, String userMsg, String devMsg) {
+    if(e.getErrorCode().equals(RESTCodes.ElasticErrorCode.ELASTIC_QUERY_ERROR)) {
+      return new ProvenanceException(RESTCodes.ProvenanceErrorCode.BAD_REQUEST, Level.INFO, userMsg, devMsg, e);
+    } else {
+      return new ProvenanceException(RESTCodes.ProvenanceErrorCode.INTERNAL_ERROR, Level.WARNING, userMsg, devMsg, e);
+    }
+  }
+  
   public static boolean missingMappingForField(ProvenanceException e) {
     return e.getErrorCode().equals(RESTCodes.ProvenanceErrorCode.BAD_REQUEST)
       && e.getDevMsg().startsWith("missing mapping for field");
   }
+  //*****************************************************************************
 }

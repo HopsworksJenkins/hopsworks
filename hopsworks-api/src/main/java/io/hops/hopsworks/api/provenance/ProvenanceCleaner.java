@@ -66,7 +66,7 @@ public class ProvenanceCleaner {
       return;
     }
     try {
-      Pair<Integer, String> round = archiveRound(lastIndexChecked, cleanupSize, archiveSize);
+      Pair<Integer, String> round = archiveRound(lastIndexChecked, cleanupSize);
       LOGGER.log(Level.INFO, "cleanup round - idx cleaned:{0} from:{1} to:{2}",
         new Object[]{round.getValue0(), lastIndexChecked, round.getValue1()});
       lastIndexChecked = round.getValue1();
@@ -75,7 +75,7 @@ public class ProvenanceCleaner {
     }
   }
   
-  private Pair<Integer, String> archiveRound(String nextToCheck, Integer limitIdx, int limitOps)
+  private Pair<Integer, String> archiveRound(String nextToCheck, Integer limitIdx)
     throws ProvenanceException, ElasticException {
     String[] indices = getAllIndices();
     

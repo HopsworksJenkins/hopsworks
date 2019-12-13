@@ -17,7 +17,7 @@ package io.hops.hopsworks.common.provenance.state;
 
 import io.hops.hopsworks.common.dao.project.Project;
 import io.hops.hopsworks.common.provenance.app.ProvAppController;
-import io.hops.hopsworks.common.provenance.core.apiToElastic.ProvParser;
+import io.hops.hopsworks.common.provenance.core.ProvParser;
 import io.hops.hopsworks.common.provenance.core.elastic.BasicElasticHit;
 import io.hops.hopsworks.common.provenance.core.elastic.ElasticCache;
 import io.hops.hopsworks.common.provenance.core.elastic.ProvElasticController;
@@ -29,6 +29,7 @@ import io.hops.hopsworks.common.provenance.state.dto.ProvStateElastic;
 import io.hops.hopsworks.common.provenance.app.dto.ProvAppStateDTO;
 import io.hops.hopsworks.common.provenance.core.Provenance;
 import io.hops.hopsworks.common.provenance.state.dto.ProvStateListDTO;
+import io.hops.hopsworks.common.provenance.util.ProvHelper;
 import io.hops.hopsworks.common.provenance.util.functional.CheckedFunction;
 import io.hops.hopsworks.common.provenance.util.functional.CheckedSupplier;
 import io.hops.hopsworks.common.util.Settings;
@@ -67,17 +68,15 @@ public class ProvStateController {
   @EJB
   private ProvElasticController client;
   @EJB
-  private ProvTreeController treeCtrl;
-  @EJB
   private ProvAppController appCtrl;
   @EJB
   private ElasticCache cache;
   
   public ProvStateListDTO provFileStateList(Project project, ProvFileStateParamBuilder params)
-    throws ProvenanceException, ElasticException {
+    throws ProvenanceException {
     if(params.getPagination() != null && !params.getAppStateFilter().isEmpty()) {
-      throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.UNSUPPORTED, Level.INFO,
-        "cannot use pagination with app state filtering");
+      String msg = "cannot use pagination with app state filtering";
+      throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.UNSUPPORTED, Level.INFO, msg);
     }
     
     checkMapping(project, params);
@@ -113,7 +112,7 @@ public class ProvStateController {
   }
   
   public long provFileStateCount(Project project, ProvFileStateParamBuilder params)
-    throws ProvenanceException, ElasticException {
+    throws ProvenanceException {
     if(params.hasAppExpansion()) {
       throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.UNSUPPORTED, Level.INFO,
         "provenance file state count does not currently work with app state expansion");
@@ -122,19 +121,24 @@ public class ProvStateController {
       params.getExactXAttrFilter(), params.getLikeXAttrFilter(), params.getHasXAttrFilter());
   }
   
-  private void checkMapping(Project project, ProvFileStateParamBuilder params)
-    throws ProvenanceException, ElasticException {
+  private void checkMapping(Project project, ProvFileStateParamBuilder params) throws ProvenanceException {
     String index = Provenance.getProjectIndex(project);
-    Map<String, String> mapping = cache.mngIndexGetMapping(index, false);
-    if(mapping == null) {
-      throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.BAD_REQUEST, Level.INFO,
-        "provenance file state - no index");
-    }
+    Map<String, String> mapping;
     try {
-      params.fixSortBy(index, mapping);
-    } catch(ProvenanceException e) {
-      mapping = cache.mngIndexGetMapping(index, true);
-      params.fixSortBy(index, mapping);
+      mapping = cache.mngIndexGetMapping(index, false);
+      if(mapping == null) {
+        throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.BAD_REQUEST, Level.INFO,
+          "provenance file state - no index");
+      }
+      try {
+        params.fixSortBy(index, mapping);
+      } catch(ProvenanceException e) {
+        mapping = cache.mngIndexGetMapping(index, true);
+        params.fixSortBy(index, mapping);
+      }
+    } catch (ElasticException e) {
+      String msg = "provenance - elastic query problem";
+      throw ProvHelper.fromElastic(e, msg, msg + " - file state mapping");
     }
   }
   
@@ -153,10 +157,12 @@ public class ProvStateController {
   private ProvStateListDTO provFileState(Long projectIId,
     Map<String, ProvParser.FilterVal> fileStateFilters,
     List<Pair<ProvParser.Field, SortOrder>> fileStateSortBy,
-    Map<String, String> xAttrsFilters, Map<String, String> likeXAttrsFilters, Set<String> hasXAttrsFilters,
+    Map<String, String> xAttrsFilters,
+    Map<String, String> likeXAttrsFilters,
+    Set<String> hasXAttrsFilters,
     List<ProvFileStateParamBuilder.SortE> xattrSortBy,
     Integer offset, Integer limit)
-    throws ProvenanceException, ElasticException {
+    throws ProvenanceException {
     CheckedSupplier<SearchRequest, ProvenanceException> srF =
       ElasticHelper.baseSearchRequest(
         settings.getProvFileIndex(projectIId),
@@ -165,20 +171,31 @@ public class ProvStateController {
         .andThen(ElasticHelper.withFileStateOrder(fileStateSortBy, xattrSortBy))
         .andThen(ElasticHelper.withPagination(offset, limit, settings.getElasticMaxScrollPageSize()));
     SearchRequest request = srF.get();
-    Pair<Long, List<ProvStateElastic>> searchResult = client.search(request, fileStateParser());
+    Pair<Long, List<ProvStateElastic>> searchResult;
+    try {
+      searchResult = client.search(request, fileStateParser());
+    } catch (ElasticException e) {
+      String msg = "provenance - elastic query problem";
+      throw ProvHelper.fromElastic(e, msg, msg + " - file state");
+    }
     return new ProvStateListDTO(searchResult.getValue1(), searchResult.getValue0());
   }
   
-  private Long provFileStateCount(Long projectIId,
-    Map<String, ProvParser.FilterVal> fileStateFilters,
+  private Long provFileStateCount(Long projectIId, Map<String, ProvParser.FilterVal> fileStateFilters,
     Map<String, String> xAttrsFilters, Map<String, String> likeXAttrsFilters, Set<String> hasXAttrsFilters)
-    throws ProvenanceException, ElasticException {
+    throws ProvenanceException {
     CheckedSupplier<SearchRequest, ProvenanceException> srF =
       ElasticHelper.countSearchRequest(
         settings.getProvFileIndex(projectIId))
         .andThen(filterByStateParams(fileStateFilters, xAttrsFilters, likeXAttrsFilters, hasXAttrsFilters));
     SearchRequest request = srF.get();
-    Long searchResult = client.searchCount(request);
+    Long searchResult;
+    try {
+      searchResult = client.searchCount(request);
+    } catch (ElasticException e) {
+      String msg = "provenance - elastic query problem";
+      throw ProvHelper.fromElastic(e, msg, msg + " - file state count");
+    }
     return searchResult;
   }
   
@@ -189,8 +206,8 @@ public class ProvStateController {
   }
   
   private CheckedFunction<SearchRequest, SearchRequest, ProvenanceException> filterByStateParams(
-    Map<String, ProvParser.FilterVal> fileStateFilters,
-    Map<String, String> xAttrsFilters, Map<String, String> likeXAttrsFilters, Set<String> hasXAttrsFilters) {
+    Map<String, ProvParser.FilterVal> fileStateFilters, Map<String, String> xAttrsFilters,
+    Map<String, String> likeXAttrsFilters, Set<String> hasXAttrsFilters) {
     return (SearchRequest sr) -> {
       BoolQueryBuilder query = boolQuery()
         .must(termQuery(ProvParser.BaseField.ENTRY_TYPE.toString().toLowerCase(),

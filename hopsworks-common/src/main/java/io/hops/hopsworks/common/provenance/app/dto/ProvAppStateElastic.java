@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import io.hops.hopsworks.common.provenance.app.apiToElastic.ProvAParser;
+import io.hops.hopsworks.common.provenance.app.ProvAParser;
 import io.hops.hopsworks.common.provenance.core.elastic.BasicElasticHit;
 import io.hops.hopsworks.common.provenance.core.Provenance;
 import io.hops.hopsworks.common.provenance.util.ProvHelper;
