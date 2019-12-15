@@ -91,7 +91,7 @@ describe "On #{ENV['OS']}" do
     end
 
     describe 'featurestore' do
-      it 'training dataset with features', focus: true do
+      it 'training dataset with features', skip: true do
         project = @project1
         job_name = "prov_training_dataset"
         src = "#{ENV['PROJECT_DIR']}/hopsworks-IT/src/test/ruby/spec/aux/#{job_name}.ipynb"
