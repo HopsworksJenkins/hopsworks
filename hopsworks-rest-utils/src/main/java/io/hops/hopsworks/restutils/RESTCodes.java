@@ -1428,7 +1428,9 @@ public class RESTCodes {
       Response.Status.BAD_REQUEST),
     XATTRS_OPERATIONS_ONLY_SUPPORTED_FOR_CACHED_FEATUREGROUPS(90, "Attaching " +
         "extended attributes is only supported for cached featuregroups.",
-        Response.Status.BAD_REQUEST);
+        Response.Status.BAD_REQUEST),
+    FEATUREGROUP_NAME_NOT_PROVIDED(91, "Feature group name was not provided", Response.Status.BAD_REQUEST),
+    TRAINING_DATASET_NAME_NOT_PROVIDED(92, "Training dataset name was not provided", Response.Status.BAD_REQUEST);
 
     private int code;
     private String message;

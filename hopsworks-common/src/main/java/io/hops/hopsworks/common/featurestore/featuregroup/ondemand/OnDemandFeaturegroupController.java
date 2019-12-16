@@ -68,7 +68,6 @@ public class OnDemandFeaturegroupController {
     //Persist on-demand featuregroup
     OnDemandFeaturegroup onDemandFeaturegroup = new OnDemandFeaturegroup();
     onDemandFeaturegroup.setDescription(onDemandFeaturegroupDTO.getDescription());
-    onDemandFeaturegroup.setName(onDemandFeaturegroupDTO.getName());
     onDemandFeaturegroup.setFeaturestoreJdbcConnector(featurestoreJdbcConnector);
     onDemandFeaturegroup.setQuery(onDemandFeaturegroupDTO.getQuery());
     onDemandFeaturegroupFacade.persist(onDemandFeaturegroup);
@@ -90,11 +89,7 @@ public class OnDemandFeaturegroupController {
   @TransactionAttribute(TransactionAttributeType.NEVER)
   public void updateOnDemandFeaturegroupMetadata(OnDemandFeaturegroup onDemandFeaturegroup,
     OnDemandFeaturegroupDTO onDemandFeaturegroupDTO) throws FeaturestoreException {
-    
-    if(!Strings.isNullOrEmpty(onDemandFeaturegroupDTO.getName())){
-      verifyOnDemandFeaturegroupName(onDemandFeaturegroupDTO.getName());
-      onDemandFeaturegroup.setName(onDemandFeaturegroupDTO.getName());
-    }
+
     if(!Strings.isNullOrEmpty(onDemandFeaturegroupDTO.getDescription())){
       verifyOnDemandFeaturegroupDescription(onDemandFeaturegroupDTO.getDescription());
       onDemandFeaturegroup.setDescription(onDemandFeaturegroupDTO.getDescription());

@@ -16,7 +16,6 @@
 
 package io.hops.hopsworks.common.featurestore.trainingdatasets.external;
 
-import com.google.common.base.Strings;
 import io.hops.hopsworks.common.dao.featurestore.storageconnector.s3.FeaturestoreS3Connector;
 import io.hops.hopsworks.common.dao.featurestore.trainingdataset.TrainingDataset;
 import io.hops.hopsworks.common.dao.featurestore.trainingdataset.external.ExternalTrainingDataset;
@@ -61,7 +60,6 @@ public class ExternalTrainingDatasetController {
         Level.FINE, "hopsfsConnector: " + externalTrainingDatasetDTO.getS3ConnectorId());
     }
     ExternalTrainingDataset externalTrainingDataset = new ExternalTrainingDataset();
-    externalTrainingDataset.setName(externalTrainingDatasetDTO.getName());
     externalTrainingDataset.setFeaturestoreS3Connector(featurestoreS3Connector);
     externalTrainingDatasetFacade.persist(externalTrainingDataset);
     return externalTrainingDataset;
@@ -123,11 +121,10 @@ public class ExternalTrainingDatasetController {
    */
   public ExternalTrainingDatasetDTO convertExternalTrainingDatasetToDTO(TrainingDataset trainingDataset) {
     ExternalTrainingDatasetDTO externalTrainingDatasetDTO = new ExternalTrainingDatasetDTO(trainingDataset);
-    externalTrainingDatasetDTO.setName(trainingDataset.getExternalTrainingDataset().getName());
     externalTrainingDatasetDTO.setLocation(
       "s3a://" + trainingDataset.getExternalTrainingDataset().getFeaturestoreS3Connector().getBucket() + "/" +
         FeaturestoreConstants.S3_BUCKET_TRAINING_DATASETS_FOLDER + "/" +
-        trainingDataset.getExternalTrainingDataset().getName() + "_" + trainingDataset.getVersion());
+        trainingDataset.getName() + "_" + trainingDataset.getVersion());
     return externalTrainingDatasetDTO;
   }
 
@@ -153,12 +150,6 @@ public class ExternalTrainingDatasetController {
   @TransactionAttribute(TransactionAttributeType.NEVER)
   public void updateExternalTrainingDatasetMetadata(ExternalTrainingDataset externalTrainingDataset,
     ExternalTrainingDatasetDTO externalTrainingDatasetDTO) throws FeaturestoreException {
-    
-    if(!Strings.isNullOrEmpty(externalTrainingDatasetDTO.getName())){
-      verifyExternalTrainingDatasetName(externalTrainingDatasetDTO.getName());
-      externalTrainingDataset.setName(externalTrainingDatasetDTO.getName());
-    }
-  
     if(externalTrainingDatasetDTO.getS3ConnectorId() != null){
       FeaturestoreS3Connector featurestoreS3Connector =
         verifyExternalTrainingDatasetS3ConnectorId(externalTrainingDatasetDTO.getS3ConnectorId());
