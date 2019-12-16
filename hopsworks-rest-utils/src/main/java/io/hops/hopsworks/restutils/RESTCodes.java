@@ -1430,7 +1430,9 @@ public class RESTCodes {
         "extended attributes is only supported for cached featuregroups.",
         Response.Status.BAD_REQUEST),
     FEATUREGROUP_NAME_NOT_PROVIDED(91, "Feature group name was not provided", Response.Status.BAD_REQUEST),
-    TRAINING_DATASET_NAME_NOT_PROVIDED(92, "Training dataset name was not provided", Response.Status.BAD_REQUEST);
+    TRAINING_DATASET_NAME_NOT_PROVIDED(92, "Training dataset name was not provided", Response.Status.BAD_REQUEST),
+    FEATURESTORE_VERSION_NOT_PROVIDED(93, "Feature group version was not provided",
+        Response.Status.BAD_REQUEST);
 
     private int code;
     private String message;
