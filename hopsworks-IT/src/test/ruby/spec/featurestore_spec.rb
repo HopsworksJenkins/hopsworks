@@ -994,7 +994,7 @@ describe "On #{ENV['OS']}" do
           expect_status(201)
 
           # Get the first version
-          get_training_datasets_endpoint = "#{ENV['HOPSWORKS_API']}/project/#{project.id}/featurestores/#{featurestore_id}/name/trainingdatasets/#{training_dataset_name}/version/1"
+          get_training_datasets_endpoint = "#{ENV['HOPSWORKS_API']}/project/#{project.id}/featurestores/#{featurestore_id}/trainingdatasets/name/#{training_dataset_name}/version/1"
           get get_training_datasets_endpoint 
           parsed_json = JSON.parse(response.body)
           expect_status(200)
