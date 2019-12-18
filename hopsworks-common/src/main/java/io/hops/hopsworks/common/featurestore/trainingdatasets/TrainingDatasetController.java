@@ -55,6 +55,7 @@ import javax.ejb.TransactionAttributeType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,7 @@ import java.util.stream.Collectors;
  * Class controlling the interaction with the training_dataset table and required business logic
  */
 @Stateless
+@TransactionAttribute(TransactionAttributeType.NEVER)
 public class TrainingDatasetController {
   @EJB
   private TrainingDatasetFacade trainingDatasetFacade;
@@ -92,7 +94,6 @@ public class TrainingDatasetController {
    * @param featurestore featurestore to query trainingDatasets for
    * @return list of XML/JSON DTOs of the trainingDatasets
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public List<TrainingDatasetDTO> getTrainingDatasetsForFeaturestore(Featurestore featurestore) {
     List<TrainingDataset> trainingDatasets = trainingDatasetFacade.findByFeaturestore(featurestore);
     return trainingDatasets.stream().map(td -> convertTrainingDatasetToDTO(td)).collect(Collectors.toList());
@@ -134,7 +135,6 @@ public class TrainingDatasetController {
    * @param trainingDatasetDTO       user input data
    * @return JSON/XML DTO of the trainingDataset
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public TrainingDatasetDTO createTrainingDataset(Users user, Featurestore featurestore,
     TrainingDatasetDTO trainingDatasetDTO) throws FeaturestoreException {
     
@@ -169,6 +169,7 @@ public class TrainingDatasetController {
     
     //Store trainingDataset metadata in Hopsworks
     TrainingDataset trainingDataset = new TrainingDataset();
+    trainingDataset.setName(trainingDatasetDTO.getName());
     trainingDataset.setHopsfsTrainingDataset(hopsfsTrainingDataset);
     trainingDataset.setExternalTrainingDataset(externalTrainingDataset);
     trainingDataset.setDataFormat(trainingDatasetDTO.getDataFormat());
@@ -223,7 +224,6 @@ public class TrainingDatasetController {
    * @return XML/JSON DTO of the trainingDataset
    * @throws FeaturestoreException
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public TrainingDatasetDTO getTrainingDatasetWithIdAndFeaturestore(Featurestore featurestore, Integer id)
       throws FeaturestoreException {
     TrainingDataset trainingDataset = trainingDatasetFacade.findByIdAndFeaturestore(id, featurestore);
@@ -232,6 +232,42 @@ public class TrainingDatasetController {
           Level.FINE, "trainingDatasetId: " + id);
     }
     return convertTrainingDatasetToDTO(trainingDataset);
+  }
+
+  /**
+   * Retrieves a list of trainingDataset with a particular name from a particular feature store
+   *
+   * @param name name of the trainingDataset
+   * @param featurestore the featurestore that the trainingDataset belongs to
+   * @return XML/JSON DTO of the trainingDataset
+   * @throws FeaturestoreException
+   */
+  public List<TrainingDatasetDTO> getTrainingDatasetWithNameAndFeaturestore(Featurestore featurestore, String name)
+      throws FeaturestoreException {
+    List<TrainingDataset> trainingDatasetList= trainingDatasetFacade.findByNameAndFeaturestore(name, featurestore);
+    if (trainingDatasetList == null || trainingDatasetList.isEmpty()) {
+      throw new FeaturestoreException(RESTCodes.FeaturestoreErrorCode.TRAINING_DATASET_NOT_FOUND,
+          Level.FINE, "training dataset name : " + name);
+    }
+    return trainingDatasetList.stream().map(this::convertTrainingDatasetToDTO).collect(Collectors.toList());
+  }
+
+  /**
+   * Retrieves a trainingDataset with a particular name and version from a particular feature store
+   *
+   * @param name name of the trainingDataset
+   * @param featurestore the featurestore that the trainingDataset belongs to
+   * @return XML/JSON DTO of the trainingDataset
+   * @throws FeaturestoreException
+   */
+  public TrainingDatasetDTO getTrainingDatasetWithNameVersionAndFeaturestore(Featurestore featurestore,
+        String name, Integer version) throws FeaturestoreException {
+
+    Optional<TrainingDataset> trainingDataset =
+        trainingDatasetFacade.findByNameVersionAndFeaturestore(name, version, featurestore);
+    return convertTrainingDatasetToDTO(trainingDataset
+        .orElseThrow(() -> new FeaturestoreException(RESTCodes.FeaturestoreErrorCode.TRAINING_DATASET_NOT_FOUND,
+            Level.FINE, "training dataset name : " + name)));
   }
 
   /**
@@ -268,7 +304,6 @@ public class TrainingDatasetController {
    * @return the trainindataset with the specific name in the specific featurestore & project
    * @throws FeaturestoreException
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public TrainingDatasetDTO getTrainingDatasetByFeaturestoreAndName(
       Project project, Featurestore featurestore, String trainingDatasetName, int version)
       throws FeaturestoreException {
@@ -296,7 +331,6 @@ public class TrainingDatasetController {
    * @return JSON/XML DTO of the deleted trainingDataset
    * @throws FeaturestoreException
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public TrainingDatasetDTO deleteTrainingDatasetWithIdAndFeaturestore(
       Featurestore featurestore, Integer id) throws FeaturestoreException {
     TrainingDataset trainingDataset = trainingDatasetFacade.findByIdAndFeaturestore(id, featurestore);
@@ -326,7 +360,6 @@ public class TrainingDatasetController {
    * @return a JSON/XML DTO of the updated training dataset
    * @throws FeaturestoreException
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public TrainingDatasetDTO updateTrainingDatasetMetadata(
       Featurestore featurestore, TrainingDatasetDTO trainingDatasetDTO) throws FeaturestoreException {
     TrainingDataset trainingDataset = verifyTrainingDatasetId(trainingDatasetDTO.getId(), featurestore);
@@ -375,7 +408,6 @@ public class TrainingDatasetController {
    *
    * @return a JSON/XML DTO of the updated training dataset
    */
-  @TransactionAttribute(TransactionAttributeType.NEVER)
   public TrainingDatasetDTO updateTrainingDatasetStats(
     Featurestore featurestore, TrainingDatasetDTO trainingDatasetDTO) {
     TrainingDataset trainingDataset = verifyTrainingDatasetId(trainingDatasetDTO.getId(), featurestore);
@@ -590,7 +622,7 @@ public class TrainingDatasetController {
     trainingDatasets.stream().filter(td -> {
       return (
         td.getTrainingDatasetType() == TrainingDatasetType.EXTERNAL_TRAINING_DATASET &&
-          td.getExternalTrainingDataset().getName().equals(externalTrainingDatasetName) &&
+          td.getName().equals(externalTrainingDatasetName) &&
           td.getVersion().equals(externalTrainingDatasetVersion)
         );
       }

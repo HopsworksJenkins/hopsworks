@@ -33,7 +33,8 @@ public class FeaturestoreConstants {
   }
 
   public static final int FEATURESTORE_STATISTICS_MAX_CORRELATIONS= 50;
-  public static final Pattern FEATURESTORE_REGEX = Pattern.compile("^[a-z0-9_]+$");
+  // Featuregroups and training datasets should contain at least one lowercase letter and have at most 63 chars
+  public static final Pattern FEATURESTORE_REGEX = Pattern.compile("^(?=.{1,63}$)([a-z0-9_]*[a-z]{1}[a-z0-9_]*)$");
   public static final int STORAGE_CONNECTOR_NAME_MAX_LENGTH = 1000;
   public static final int STORAGE_CONNECTOR_DESCRIPTION_MAX_LENGTH = 1000;
   public static final int JDBC_STORAGE_CONNECTOR_CONNECTIONSTRING_MAX_LENGTH = 5000;
