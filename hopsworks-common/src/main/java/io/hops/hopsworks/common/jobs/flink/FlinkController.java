@@ -80,6 +80,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.List;
@@ -249,12 +251,15 @@ public class FlinkController {
    * @throws IOException If the flink conf file could be read.
    */
   public String getArchiveDir() throws IOException {
-    //R
     Yaml yaml = new Yaml();
     try (InputStream in = new FileInputStream(new File(settings.getFlinkConfFile()))) {
       Map<String, Object> obj = (Map<String, Object>) yaml.load(in);
       return Utils.prepPath((String) obj.get("historyserver.archive.fs.dir"));
     }
   }
-  
+
+  public boolean isFlinkInstalled() {
+    Path flinkConfigDir = Paths.get(settings.getFlinkConfDir());
+    return flinkConfigDir.toFile().isDirectory();
+  }
 }
