@@ -56,6 +56,12 @@ public class FlinkCleaner {
     //Get all jobs from history server
     DistributedFileSystemOps dfso = null;
     try {
+      if(!flinkController.isFlinkInstalled()) {
+        LOGGER.log(Level.INFO, "Could not find Flink configuration directory, assuming service is not installed, " +
+            "shutting down timer.");
+        timer.cancel();
+        return;
+      }
       //Read all completed jobs from "historyserver.archive.fs.dir"
       String archiveDir = flinkController.getArchiveDir();
       //Delete all without hdfs user
