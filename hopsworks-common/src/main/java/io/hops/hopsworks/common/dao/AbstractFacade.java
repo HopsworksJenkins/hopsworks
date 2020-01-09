@@ -204,6 +204,14 @@ public abstract class AbstractFacade<T> {
     return val;
   }
   
+  public Long getLongValue(String field, String value) {
+    try {
+      return Long.parseLong(value);
+    } catch (NumberFormatException e) {
+      throw new InvalidQueryException("Filter value for " + field + " needs to set a Long, but found: " + value);
+    }
+  }
+  
   public List<Integer> getIntValues(FilterBy filterBy) {
     String[] filterStrs = splitFilterParams(filterBy);
     List<Integer> values = new ArrayList<>();

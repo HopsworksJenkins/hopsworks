@@ -40,21 +40,26 @@
 package io.hops.hopsworks.common.dao.kagent;
 
 import io.hops.hopsworks.common.agent.AgentController;
+import io.hops.hopsworks.common.dao.AbstractFacade;
 import io.hops.hopsworks.common.dao.host.Hosts;
 import io.hops.hopsworks.common.dao.host.HostsFacade;
-import io.hops.hopsworks.common.dao.host.Status;
+import io.hops.hopsworks.common.dao.host.ServiceStatus;
 import io.hops.hopsworks.exceptions.GenericException;
+import io.hops.hopsworks.exceptions.InvalidQueryException;
 import io.hops.hopsworks.restutils.RESTCodes;
 import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.common.util.WebCommunication;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
@@ -62,7 +67,7 @@ import javax.persistence.NonUniqueResultException;
 import javax.ws.rs.core.Response;
 
 @Stateless
-public class HostServicesFacade {
+public class HostServicesFacade extends AbstractFacade<HostServices> {
 
   @EJB
   private WebCommunication web;
@@ -73,13 +78,15 @@ public class HostServicesFacade {
 
   @PersistenceContext(unitName = "kthfsPU")
   private EntityManager em;
-
+  
   public HostServicesFacade() {
+    super(HostServices.class);
   }
-
-  public HostServices find(String hostname, String group, String service) {
+  
+  public HostServices find(String hostname, String group, String name) {
     TypedQuery<HostServices> query = em.createNamedQuery("HostServices.find", HostServices.class)
-        .setParameter("hostname", hostname).setParameter("group", group).setParameter("service", service);
+      .setParameter("hostname", hostname).setParameter("group", group)
+      .setParameter("name", name);
     List results = query.getResultList();
     if (results.isEmpty()) {
       return null;
@@ -88,20 +95,21 @@ public class HostServicesFacade {
     }
     throw new NonUniqueResultException();
   }
-
-  public List<HostServices> findAll() {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findAll", HostServices.class);
-    return query.getResultList();
+  
+  @Override
+  protected EntityManager getEntityManager() {
+    return em;
   }
 
   public List<HostServices> findGroupServices(String group) {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findBy-Group", HostServices.class).
-        setParameter("group", group);
+    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findBy-Group", HostServices.class)
+      .setParameter("group", group);
     return query.getResultList();
   }
 
   public List<String> findGroups() {
-    return em.createNamedQuery("HostServices.findGroups", String.class).getResultList();
+    return em.createNamedQuery("HostServices.findGroups", String.class)
+      .getResultList();
   }
 
   public List<HostServices> findHostServiceByHostname(String hostname) {
@@ -110,15 +118,16 @@ public class HostServicesFacade {
     return query.getResultList();
   }
 
-  public List<HostServices> findServices(String service) {
+  public List<HostServices> findServices(String name) {
     TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findBy-Service", HostServices.class)
-        .setParameter("service", service);
+        .setParameter("name", name);
     return query.getResultList();
   }
 
-  public Long count(String group, String service) {
+  public Long count(String group, String name) {
     TypedQuery<Long> query = em.createNamedQuery("HostServices.Count", Long.class)
-        .setParameter("group", group).setParameter("service", service);
+      .setParameter("group", group)
+      .setParameter("name", name);
     return query.getSingleResult();
   }
 
@@ -134,8 +143,9 @@ public class HostServicesFacade {
 
   public void store(HostServices service) {
     TypedQuery<HostServices> query = em.createNamedQuery("HostServices.find", HostServices.class)
-        .setParameter("hostname", service.getHost().getHostname())
-        .setParameter("group", service.getGroup()).setParameter("service", service.getService());
+      .setParameter("hostname", service.getHost().getHostname())
+      .setParameter("group", service.getGroup())
+      .setParameter("name", service.getName());
     List<HostServices> s = query.getResultList();
 
     if (s.size() > 0) {
@@ -147,7 +157,9 @@ public class HostServicesFacade {
   }
 
   public void deleteServicesByHostname(String hostname) {
-    em.createNamedQuery("HostServices.DeleteBy-Hostname").setParameter("hostname", hostname).executeUpdate();
+    em.createNamedQuery("HostServices.DeleteBy-Hostname")
+      .setParameter("hostname", hostname)
+      .executeUpdate();
   }
 
   public String groupOp(String group, Action action) throws GenericException {
@@ -160,7 +172,7 @@ public class HostServicesFacade {
 
   public String serviceOnHostOp(String group, String serviceName, String hostname,
       Action action) throws GenericException {
-    return webOp(action, Arrays.asList(find(hostname, group, serviceName)));
+    return webOp(action, Collections.singletonList(find(hostname, group, serviceName)));
   }
 
   private String webOp(Action operation, List<HostServices> services) throws GenericException {
@@ -181,7 +193,7 @@ public class HostServicesFacade {
         String agentPassword = h.getAgentPassword();
         try {
           result += service.toString() + " " + web.serviceOp(operation.value(), ip, agentPassword,
-              service.getGroup(), service.getService());
+              service.getGroup(), service.getName());
           success = true;
         } catch (GenericException ex) {
           if (services.size() == 1) {
@@ -225,23 +237,23 @@ public class HostServicesFacade {
         hostService = new HostServices();
         hostService.setHost(host);
         hostService.setGroup(group);
-        hostService.setService(name);
+        hostService.setName(name);
         hostService.setStartTime(heartbeat.getAgentTime());
       }
   
       final Integer pid = service.getPid() != null ? service.getPid(): -1;
       hostService.setPid(pid);
       if (service.getStatus() != null) {
-        if ((hostService.getStatus() == null || !hostService.getStatus().equals(Status.Started))
-            && service.getStatus().equals(Status.Started)) {
+        if ((hostService.getStatus() == null || !hostService.getStatus().equals(ServiceStatus.STARTED))
+            && service.getStatus().equals(ServiceStatus.STARTED)) {
           hostService.setStartTime(heartbeat.getAgentTime());
         }
         hostService.setStatus(service.getStatus());
       } else {
-        hostService.setStatus(Status.None);
+        hostService.setStatus(ServiceStatus.NONE);
       }
   
-      if (service.getStatus().equals(Status.Started)) {
+      if (service.getStatus().equals(ServiceStatus.STARTED)) {
         hostService.setStopTime(heartbeat.getAgentTime());
       }
       final Long startTime = hostService.getStartTime();
@@ -256,5 +268,154 @@ public class HostServicesFacade {
       hostServices.add(hostService);
     }
     return hostServices;
+  }
+  
+  public CollectionInfo findAll(Integer offset, Integer limit, Set<? extends FilterBy> filter,
+    Set<? extends SortBy> sort) {
+    String queryStr = buildQuery("SELECT DISTINCT h FROM HostServices h ", filter, sort, "");
+    String queryCountStr = buildQuery("SELECT COUNT(DISTINCT h.id) FROM HostServices h ", filter, sort, "");
+    Query query = em.createQuery(queryStr, HostServices.class);
+    Query queryCount = em.createQuery(queryCountStr, HostServices.class);
+    setFilter(filter, query);
+    setFilter(filter, queryCount);
+    setOffsetAndLim(offset, limit, query);
+    return new CollectionInfo((Long) queryCount.getSingleResult(), query.getResultList());
+  }
+  
+  private void setFilter(Set<? extends AbstractFacade.FilterBy> filter, Query q) {
+    if (filter == null || filter.isEmpty()) {
+      return;
+    }
+    for (FilterBy aFilter : filter) {
+      setFilterQuery(aFilter, q);
+    }
+  }
+  
+  private void setFilterQuery(AbstractFacade.FilterBy filterBy, Query q) {
+    switch (Filters.valueOf(filterBy.getValue())) {
+      case ID:
+        q.setParameter(filterBy.getField(), getLongValue(filterBy.getField(), filterBy.getParam()));
+        break;
+      case HOST_ID:
+      case PID:
+        q.setParameter(filterBy.getField(), getIntValue(filterBy));
+        break;
+      case NAME:
+      case GROUP_NAME:
+        q.setParameter(filterBy.getField(), filterBy.getParam());
+        break;
+      case STATUS:
+        q.setParameter(filterBy.getField(), getStatusValue(filterBy.getField(), filterBy.getParam()));
+        break;
+      default:
+        break;
+    }
+  }
+  
+  private ServiceStatus getStatusValue(String field, String value) {
+    if (value == null || value.isEmpty()) {
+      throw new InvalidQueryException("Filter value for " + field + " needs to set an Integer or a valid " + field
+        + ", but found: " + value);
+    }
+    ServiceStatus val;
+    try {
+      int v = Integer.parseInt(value);
+      val = ServiceStatus.fromValue(v);
+    } catch (IllegalArgumentException e) {
+      try {
+        val = ServiceStatus.valueOf(value);
+      } catch (IllegalArgumentException ie) {
+        throw new InvalidQueryException("Filter value for " + field + " needs to set an Integer or a valid " + field
+          + ", but found: " + value);
+      }
+    }
+    return val;
+  }
+  
+  public enum Sorts {
+    ID("ID", "h.id", "ASC"),
+    HOST_ID("HOST_ID", "h.host_id", "ASC"),
+    PID("PID", "h.pid", "ASC"),
+    NAME("NAME", "LOWER(h.name)", "ASC"),
+    GROUP_NAME("GROUP_NAME", "LOWER(h.group_name)", "ASC"),
+    STATUS("STATUS", "h.status", "ASC"),
+    UPTIME("UPTIME", "h.uptime", "ASC"),
+    START_TIME("START_TIME", "h.startTime", "ASC"),
+    STOP_TIME("STOP_TIME", "h.stopTime", "ASC");
+    
+    private final String value;
+    private final String sql;
+    private final String defaultParam;
+    
+    private Sorts(String value, String sql, String defaultParam) {
+      this.value = value;
+      this.sql = sql;
+      this.defaultParam = defaultParam;
+    }
+    
+    public String getValue() {
+      return value;
+    }
+    
+    public String getSql() {
+      return sql;
+    }
+    
+    public String getDefaultParam() {
+      return defaultParam;
+    }
+    
+    public String getJoin() {
+      return null;
+    }
+    
+    @Override
+    public String toString() {
+      return value;
+    }
+    
+  }
+  
+  public enum Filters {
+    ID("ID", "h.id = :id", "id", "0"),
+    HOST_ID("HOST_ID", "h.host_id = :hostId", "host_id", "0"),
+    PID("PID", "h.pid = :pid", "pid", "0"),
+    NAME("NAME", "h.name = :name", "name", ""),
+    GROUP_NAME("GROUP_NAME", "h.groupName = :groupName", "group_name", ""),
+    STATUS("STATUS", "h.status = :status", "status", "0");
+    
+    private final String value;
+    private final String sql;
+    private final String field;
+    private final String defaultParam;
+    
+    private Filters(String value, String sql, String field, String defaultParam) {
+      this.value = value;
+      this.sql = sql;
+      this.field = field;
+      this.defaultParam = defaultParam;
+    }
+    
+    public String getValue() {
+      return value;
+    }
+    
+    public String getDefaultParam() {
+      return defaultParam;
+    }
+    
+    public String getSql() {
+      return sql;
+    }
+    
+    public String getField() {
+      return field;
+    }
+    
+    @Override
+    public String toString() {
+      return value;
+    }
+    
   }
 }

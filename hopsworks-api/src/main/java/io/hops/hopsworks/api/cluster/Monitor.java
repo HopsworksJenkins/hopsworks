@@ -101,7 +101,7 @@ public class Monitor {
     // Do not leak Host data back to clients!
     List<ServiceStatusDTO> groupStatus = new ArrayList<>();
     for (HostServices h : list) {
-      groupStatus.add(new ServiceStatusDTO(h.getGroup(), h.getService(), h.getStatus()));
+      groupStatus.add(new ServiceStatusDTO(h.getGroup(), h.getName(), h.getStatus()));
     }
     GenericEntity<List<ServiceStatusDTO>> services = new GenericEntity<List<ServiceStatusDTO>>(groupStatus) { };
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK).entity(services).build();

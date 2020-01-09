@@ -327,7 +327,7 @@ public class AdminProfileAdministration implements Serializable {
         userFacade.update(editingUser);
         am.registerAccountChange(sessionState.getLoggedInUser(), AccountsAuditActions.CHANGEDSTATUS.name(),
             UserAuditActions.SUCCESS.name(), selectedStatus, editingUser, httpServletRequest);
-        MessagesController.addInfoMessage("Success", "Status updated successfully.");
+        MessagesController.addInfoMessage("Success", "ServiceStatus updated successfully.");
       } catch (Exception ex) {
         MessagesController.addInfoMessage("Problem", "Could not update account status.");
         Logger.getLogger(AdminProfileAdministration.class.getName()).log(Level.SEVERE, null, ex);

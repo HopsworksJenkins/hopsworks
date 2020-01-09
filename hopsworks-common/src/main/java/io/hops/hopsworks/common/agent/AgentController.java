@@ -22,7 +22,7 @@ import io.hops.hopsworks.common.dao.command.SystemCommand;
 import io.hops.hopsworks.common.dao.command.SystemCommandFacade;
 import io.hops.hopsworks.common.dao.host.Hosts;
 import io.hops.hopsworks.common.dao.host.HostsFacade;
-import io.hops.hopsworks.common.dao.host.Status;
+import io.hops.hopsworks.common.dao.host.ServiceStatus;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
 import io.hops.hopsworks.common.dao.project.Project;
 import io.hops.hopsworks.common.dao.project.ProjectFacade;
@@ -531,10 +531,10 @@ public class AgentController {
     private final String service;
     private final String group;
     private final Integer pid;
-    private final Status status;
+    private final ServiceStatus status;
 
     public AgentServiceDTO(final String service, final String group,
-                           final Integer pid, final Status status) {
+                           final Integer pid, final ServiceStatus status) {
       this.service = service;
       this.group = group;
       this.pid = pid;
@@ -553,7 +553,7 @@ public class AgentController {
       return pid;
     }
 
-    public Status getStatus() {
+    public ServiceStatus getStatus() {
       return status;
     }
   }

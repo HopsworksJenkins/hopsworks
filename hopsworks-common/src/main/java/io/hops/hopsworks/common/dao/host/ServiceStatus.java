@@ -39,12 +39,41 @@
 
 package io.hops.hopsworks.common.dao.host;
 
-public enum Status {
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
 
-  Started,
-  Stopped,
-  Failed,
-  TimedOut,
-  None
-}
+@XmlType(name = "serviceStatus")
+@XmlEnum
+public enum ServiceStatus {
+
+  @XmlEnumValue("STARTED")
+  STARTED(0),
+  @XmlEnumValue("STOPPED")
+  STOPPED(1),
+  @XmlEnumValue("FAILED")
+  FAILED(2),
+  @XmlEnumValue("TIMED_OUT")
+  TIMED_OUT(3),
+  @XmlEnumValue("NONE")
+  NONE(4);
   
+  private final int value;
+  
+  private ServiceStatus(int value) {
+    this.value = value;
+  }
+  
+  public int getValue() {
+    return value;
+  }
+  
+  public static ServiceStatus fromValue(int v) {
+    for (ServiceStatus s : ServiceStatus.values()) {
+      if (s.value == v) {
+        return s;
+      }
+    }
+    throw new IllegalArgumentException("" + v);
+  }
+}
