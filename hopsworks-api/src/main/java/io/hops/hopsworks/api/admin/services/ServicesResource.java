@@ -18,7 +18,9 @@ package io.hops.hopsworks.api.admin.services;
 
 import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.util.Pagination;
+import io.hops.hopsworks.common.admin.services.HostServicesController;
 import io.hops.hopsworks.common.api.ResourceRequest;
+import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,9 +30,11 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -46,6 +50,8 @@ public class ServicesResource {
   
   @EJB
   private ServicesBuilder servicesBuilder;
+  @EJB
+  private HostServicesController hostServicesController;
 
   @ApiOperation(value = "Get metadata of all services.")
   @GET
@@ -63,19 +69,21 @@ public class ServicesResource {
     return Response.ok().entity(dto).build();
   }
   
-  @ApiOperation(value = "Get metadata a service.")
+  @ApiOperation(value = "Get metadata of a service.")
   @GET
-  @Path("/{name}")
+  @Path("/{id}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getService() {
-    return null;
+  public Response getService(@Context UriInfo uriInfo, @PathParam("id") Long id) throws ServiceException {
+    ServiceDTO dto = servicesBuilder.buildItem(uriInfo, id);
+    return Response.ok().entity(dto).build();
   }
   
   @ApiOperation(value = "Start/stop a service.")
   @PUT
-  @Path("/{name}")
+  @Path("/{id}")
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response updateService() {
-    return null;
+  public Response updateService(@PathParam("id") Long serviceId, ServiceAction action) {
+    return hostServicesController.updateService(serviceId, action.getHostname(), action.getStatus());
   }
 }

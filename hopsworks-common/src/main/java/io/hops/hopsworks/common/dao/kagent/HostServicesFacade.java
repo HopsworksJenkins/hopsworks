@@ -381,7 +381,7 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
     HOST_ID("HOST_ID", "h.host_id = :hostId", "host_id", "0"),
     PID("PID", "h.pid = :pid", "pid", "0"),
     NAME("NAME", "h.name = :name", "name", ""),
-    GROUP_NAME("GROUP_NAME", "h.groupName = :groupName", "group_name", ""),
+    GROUP_NAME("GROUP_NAME", "h.group = :group_name", "group_name", ""),
     STATUS("STATUS", "h.status = :status", "status", "0");
     
     private final String value;

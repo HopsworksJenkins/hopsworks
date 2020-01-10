@@ -17,6 +17,7 @@ package io.hops.hopsworks.api.admin.services;
 
 import io.hops.hopsworks.common.api.RestDTO;
 import io.hops.hopsworks.common.dao.host.ServiceStatus;
+import io.hops.hopsworks.common.dao.kagent.HostServices;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -33,6 +34,18 @@ public class ServiceDTO extends RestDTO<ServiceDTO> {
   private Long stopTime;
   
   public ServiceDTO() {
+  }
+  
+  public ServiceDTO(HostServices service) {
+    this.setId(service.getId());
+    this.setHostId(service.getHost().getId());
+    this.setPid(service.getPid());
+    this.setGroup(service.getGroup());
+    this.setName(service.getName());
+    this.setStatus(service.getStatus());
+    this.setUptime(service.getUptime());
+    this.setStartTime(service.getStartTime());
+    this.setStopTime(service.getStopTime());
   }
   
   public Long getId() {

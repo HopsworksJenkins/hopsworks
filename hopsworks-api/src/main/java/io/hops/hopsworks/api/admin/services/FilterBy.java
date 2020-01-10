@@ -26,7 +26,7 @@ public class FilterBy implements AbstractFacade.FilterBy {
   public FilterBy(String param) {
     String[] filterByParams = param.split(":");
     this.filter = HostServicesFacade.Filters.valueOf(filterByParams[0].toUpperCase());
-    String filterStr = filterByParams.length > 1 ? filterByParams[1].toUpperCase() : this.filter.getDefaultParam();
+    String filterStr = filterByParams.length > 1 ? filterByParams[1] : this.filter.getDefaultParam();
     this.param = filterStr;
   }
 

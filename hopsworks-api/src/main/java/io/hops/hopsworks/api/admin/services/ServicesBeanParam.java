@@ -24,13 +24,16 @@ import java.util.Set;
 public class ServicesBeanParam {
 
   @QueryParam("sort_by")
-  @ApiParam(value = "",
-      allowableValues = "")
+  @ApiParam(value = "ex. sort_by=id:asc,name:desc",
+      allowableValues = "id:asc,id:desc,host_id:asc,host_id:desc,pid:asc,pid:desc,name:asc,name:desc," +
+        "group_name:asc,group_name:desc,status:asc,status:desc,uptime:asc,uptime:desc,startTime:asc,startTime:desc," +
+        "stopTime:asc,stopTime:desc")
   private String sortBy;
   private final Set<SortBy> sortBySet;
   @QueryParam("filter_by")
-  @ApiParam(value = "",
-      allowableValues = "",
+  @ApiParam(value = "ex. filter_by=id:1&filter_by=status:STARTED",
+      allowableValues = "id:1,host_id:1,pid:1,name:kafka,group_name:ELK,status:STARTED,status:STOPPED,status:FAILED," +
+        "status:TIMED_OUT,status:NONE",
       allowMultiple = true)
   private Set<FilterBy> filter;
 

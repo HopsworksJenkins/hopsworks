@@ -15,10 +15,12 @@
  */
 package io.hops.hopsworks.api.admin.services;
 
+import io.hops.hopsworks.common.admin.services.HostServicesController;
 import io.hops.hopsworks.common.api.ResourceRequest;
 import io.hops.hopsworks.common.dao.AbstractFacade;
 import io.hops.hopsworks.common.dao.kagent.HostServices;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
+import io.hops.hopsworks.exceptions.ServiceException;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -32,18 +34,24 @@ public class ServicesBuilder {
   
   @EJB
   private HostServicesFacade hostServicesFacade;
+  @EJB
+  private HostServicesController hostServicesController;
   
   private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo) {
     dto.setHref(uriInfo.getBaseUriBuilder().build());
     return dto;
   }
   
-  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, HostServices service) {
+  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, Long serviceId) {
     dto.setHref(uriInfo.getBaseUriBuilder()
       .path(ResourceRequest.Name.SERVICES.toString())
-      .path(Long.toString(service.getId()))
+      .path(Long.toString(serviceId))
       .build());
     return dto;
+  }
+  
+  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, HostServices service) {
+    return uri(dto, uriInfo, service.getId());
   }
   
   private ServiceDTO expand(ServiceDTO dto, ResourceRequest resourceRequest) {
@@ -82,6 +90,13 @@ public class ServicesBuilder {
       dto.setStartTime(service.getStartTime());
       dto.setStopTime(service.getStopTime());
     }
+    return dto;
+  }
+  
+  public ServiceDTO buildItem(UriInfo uriInfo, Long serviceId) throws ServiceException {
+    HostServices service = hostServicesController.find(serviceId);
+    ServiceDTO dto = new ServiceDTO(service);
+    uri(dto, uriInfo, serviceId);
     return dto;
   }
 }
