@@ -20,13 +20,13 @@ import io.hops.hopsworks.common.api.ResourceRequest;
 import io.hops.hopsworks.common.dao.AbstractFacade;
 import io.hops.hopsworks.common.dao.kagent.HostServices;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
-import io.hops.hopsworks.exceptions.ServiceException;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NEVER)
@@ -42,16 +42,26 @@ public class ServicesBuilder {
     return dto;
   }
   
-  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, Long serviceId) {
+  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, String serviceName, String hostname) {
+    dto.setHref(uriInfo.getBaseUriBuilder()
+      .path(ResourceRequest.Name.HOSTS.toString())
+      .path(hostname)
+      .path(ResourceRequest.Name.SERVICES.toString())
+      .path(serviceName)
+      .build());
+    return dto;
+  }
+  
+  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, String serviceName) {
     dto.setHref(uriInfo.getBaseUriBuilder()
       .path(ResourceRequest.Name.SERVICES.toString())
-      .path(Long.toString(serviceId))
+      .path(serviceName)
       .build());
     return dto;
   }
   
   private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, HostServices service) {
-    return uri(dto, uriInfo, service.getId());
+    return uri(dto, uriInfo, service.getName(), service.getHost().getHostname());
   }
   
   private ServiceDTO expand(ServiceDTO dto, ResourceRequest resourceRequest) {
@@ -69,34 +79,43 @@ public class ServicesBuilder {
       AbstractFacade.CollectionInfo collectionInfo = hostServicesFacade.findAll(resourceRequest.getOffset(),
         resourceRequest.getLimit(), resourceRequest.getFilter(), resourceRequest.getSort());
       dto.setCount(collectionInfo.getCount());
-      collectionInfo.getItems().forEach((service) -> dto.addItem(build(uriInfo, resourceRequest, (HostServices)
+      collectionInfo.getItems().forEach((service) -> dto.addItem(build(uriInfo, (HostServices)
         service)));
     }
     return dto;
   }
   
-  public ServiceDTO build(UriInfo uriInfo, ResourceRequest resourceRequest, HostServices service) {
+  public ServiceDTO build(UriInfo uriInfo, HostServices service) {
     ServiceDTO dto = new ServiceDTO();
     uri(dto, uriInfo, service);
-    expand(dto, resourceRequest);
-    if (dto.isExpand()) {
-      dto.setId(service.getId());
-      dto.setHostId(service.getHost().getId());
-      dto.setPid(service.getPid());
-      dto.setGroup(service.getGroup());
-      dto.setName(service.getName());
-      dto.setStatus(service.getStatus());
-      dto.setUptime(service.getUptime());
-      dto.setStartTime(service.getStartTime());
-      dto.setStopTime(service.getStopTime());
-    }
+    dto.setId(service.getId());
+    dto.setHostId(service.getHost().getId());
+    dto.setPid(service.getPid());
+    dto.setGroup(service.getGroup());
+    dto.setName(service.getName());
+    dto.setStatus(service.getStatus());
+    dto.setUptime(service.getUptime());
+    dto.setStartTime(service.getStartTime());
+    dto.setStopTime(service.getStopTime());
     return dto;
   }
   
-  public ServiceDTO buildItem(UriInfo uriInfo, Long serviceId) throws ServiceException {
-    HostServices service = hostServicesController.find(serviceId);
-    ServiceDTO dto = new ServiceDTO(service);
-    uri(dto, uriInfo, serviceId);
-    return dto;
+  public ServiceDTO buildItems(UriInfo uriInfo, String serviceName) {
+    ServiceDTO dto = new ServiceDTO();
+    uri(dto, uriInfo, serviceName);
+    List<HostServices> services = hostServicesFacade.findServices(serviceName);
+    dto.setCount(Integer.toUnsignedLong(services.size()));
+    services.forEach((service) -> dto.addItem(build(uriInfo, (HostServices) service)));
+    return  dto;
   }
+
+  
+//  public ServiceDTO buildItem(UriInfo uriInfo, String serviceName, String hostname) throws ServiceException {
+//    HostServices service = hostServicesController.findByName(serviceName, hostname);
+//    ServiceDTO dto = new ServiceDTO(service);
+//    uri(dto, uriInfo, serviceName);
+//    return dto;
+//  }
+
+
 }

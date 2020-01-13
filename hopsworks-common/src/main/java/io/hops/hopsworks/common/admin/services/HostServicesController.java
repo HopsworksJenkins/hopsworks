@@ -26,6 +26,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 import java.util.logging.Level;
 
 @Stateless
@@ -36,7 +37,7 @@ public class HostServicesController {
   private HostServicesFacade hostServicesFacade;
   
   
-  public HostServices find(Long serviceId) throws ServiceException{
+  public HostServices find(Long serviceId) throws ServiceException {
     HostServices service = hostServicesFacade.find(serviceId);
     if (service == null) {
       throw new ServiceException(RESTCodes.ServiceErrorCode.SERVICE_NOT_FOUND, Level.WARNING,
@@ -45,7 +46,16 @@ public class HostServicesController {
     return service;
   }
   
-  public Response updateService(Long serviceId, String hostname, ServiceStatus status) {
+  public HostServices findByName(String name, String hostname) throws ServiceException {
+    Optional<HostServices> service = hostServicesFacade.findByServiceName(name, hostname);
+    if (!service.isPresent()) {
+      throw new ServiceException(RESTCodes.ServiceErrorCode.SERVICE_NOT_FOUND, Level.WARNING,
+        "name: " + name);
+    }
+    return service.get();
+  }
+  
+  public Response updateService(String serviceName, String hostname, ServiceStatus status) {
     return null;
   }
 }

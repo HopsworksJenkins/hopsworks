@@ -55,9 +55,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -118,9 +120,9 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
   }
 
   public List<HostServices> findServices(String name) {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findBy-Service", HostServices.class)
-        .setParameter("name", name);
-    return query.getResultList();
+    return em.createNamedQuery("HostServices.findByServiceName", HostServices.class)
+      .setParameter("name", name)
+      .getResultList();
   }
 
   public Long count(String group, String name) {
@@ -325,6 +327,17 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
       }
     }
     return val;
+  }
+  
+  public Optional<HostServices> findByServiceName(String serviceName, String hostname) {
+    try {
+      return Optional.of(em.createNamedQuery("HostServices.findByServiceNameAndHostname", HostServices.class)
+      .setParameter("name", serviceName)
+      .setParameter("hostname", hostname)
+      .getSingleResult());
+    } catch (NoResultException e) {
+      return Optional.empty();
+    }
   }
   
   public enum Sorts {

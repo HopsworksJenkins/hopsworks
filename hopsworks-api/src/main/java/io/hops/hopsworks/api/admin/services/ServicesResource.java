@@ -71,19 +71,19 @@ public class ServicesResource {
   
   @ApiOperation(value = "Get metadata of a service.")
   @GET
-  @Path("/{id}")
+  @Path("/{name}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getService(@Context UriInfo uriInfo, @PathParam("id") Long id) throws ServiceException {
-    ServiceDTO dto = servicesBuilder.buildItem(uriInfo, id);
+  public Response getService(@Context UriInfo uriInfo, @PathParam("name") String name) throws ServiceException {
+    ServiceDTO dto = servicesBuilder.buildItems(uriInfo, name);
     return Response.ok().entity(dto).build();
   }
   
   @ApiOperation(value = "Start/stop a service.")
   @PUT
-  @Path("/{id}")
+  @Path("/{name}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response updateService(@PathParam("id") Long serviceId, ServiceAction action) {
-    return hostServicesController.updateService(serviceId, action.getHostname(), action.getStatus());
+  public Response updateService(@PathParam("name") String name, ServiceAction action) {
+    return hostServicesController.updateService(name, action.getHostname(), action.getStatus());
   }
 }

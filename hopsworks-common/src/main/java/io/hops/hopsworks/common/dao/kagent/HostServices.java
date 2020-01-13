@@ -74,13 +74,15 @@ import javax.validation.constraints.Size;
   @NamedQuery(name = "HostServices.findBy-Group", query = "SELECT r FROM HostServices r WHERE r.group = :group "),
   @NamedQuery(name = "HostServices.findBy-Group-Service",
       query = "SELECT r FROM HostServices r WHERE r.group = :group AND r.name = :name"),
-  @NamedQuery(name = "HostServices.findBy-Service", query = "SELECT r FROM HostServices r WHERE r.name = :name"),
+  @NamedQuery(name = "HostServices.findByServiceName", query = "SELECT r FROM HostServices r WHERE r.name = :name"),
   @NamedQuery(name = "HostServices.Count",
       query = "SELECT COUNT(r) FROM HostServices r WHERE r.group = :group AND r.name = :name"),
   @NamedQuery(name = "HostServices.Count-services",
       query = "SELECT COUNT(r) FROM HostServices r WHERE r.group = :group"),
   @NamedQuery(name = "HostServices.DeleteBy-Hostname",
-      query = "DELETE FROM HostServices r WHERE r.host.hostname = :hostname")})
+      query = "DELETE FROM HostServices r WHERE r.host.hostname = :hostname"),
+  @NamedQuery(name = "HostServices.findByServiceNameAndHostname",
+      query = "SELECT r FROM HostServices r WHERE r.host = :hostname AND r.name = :name")})
 public class HostServices implements Serializable {
 
   private static final long serialVersionUID = 1L;
