@@ -135,7 +135,7 @@ public class HostsAdminResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getService(@Context UriInfo uriInfo, @PathParam("hostname") String hostname,
     @PathParam("name") String name) throws ServiceException {
-    ServiceDTO dto = servicesBuilder.buildItems(uriInfo, name);
+    ServiceDTO dto = servicesBuilder.buildItem(uriInfo, hostname, name);
     return Response.ok().entity(dto).build();
   }
   

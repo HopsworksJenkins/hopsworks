@@ -20,6 +20,7 @@ import io.hops.hopsworks.common.api.ResourceRequest;
 import io.hops.hopsworks.common.dao.AbstractFacade;
 import io.hops.hopsworks.common.dao.kagent.HostServices;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
+import io.hops.hopsworks.exceptions.ServiceException;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -143,9 +144,16 @@ public class ServicesBuilder {
     services.forEach((service) -> dto.addItem(build(uriInfo, (HostServices) service)));
     return  dto;
   }
-
   
-//  public ServiceDTO buildItem(UriInfo uriInfo, String serviceName, String hostname) throws ServiceException {
+  public ServiceDTO buildItem(UriInfo uriInfo, String hostname, String name) throws ServiceException {
+    HostServices service = hostServicesController.findByName(name, hostname);
+    ServiceDTO dto = new ServiceDTO(service);
+    uri(dto, uriInfo, name, hostname);
+    return dto;
+  }
+  
+  
+  //  public ServiceDTO buildItem(UriInfo uriInfo, String serviceName, String hostname) throws ServiceException {
 //    HostServices service = hostServicesController.findByName(serviceName, hostname);
 //    ServiceDTO dto = new ServiceDTO(service);
 //    uri(dto, uriInfo, serviceName);
