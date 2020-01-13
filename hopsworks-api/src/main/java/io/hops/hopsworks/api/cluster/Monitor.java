@@ -112,7 +112,7 @@ public class Monitor {
   @Path("/hosts/{hostId}/services")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getHostRoles(@PathParam("hostId") String hostname) {
-    List<HostServices> list = hostServicesFacade.findHostServiceByHostname(hostname);
+    List<HostServices> list = hostServicesFacade.findByHostname(hostname);
     GenericEntity<List<HostServices>> services = new GenericEntity<List<HostServices>>(list) {
     };
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK).entity(services).build();

@@ -21,18 +21,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class ServiceAction {
-  private String hostname;
   private ServiceStatus status;
   
   public ServiceAction() {
-  }
-  
-  public String getHostname() {
-    return hostname;
-  }
-  
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
   }
   
   public ServiceStatus getStatus() {

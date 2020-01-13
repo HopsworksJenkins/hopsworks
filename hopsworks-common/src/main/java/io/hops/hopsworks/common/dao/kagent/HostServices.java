@@ -69,7 +69,7 @@ import javax.validation.constraints.Size;
   @NamedQuery(name = "HostServices.findOnHost",
       query = "SELECT r FROM HostServices r " +
           "WHERE r.group = :group AND r.name = :name AND r.host.hostname = :hostname"),
-  @NamedQuery(name = "HostServices.findBy-Hostname",
+  @NamedQuery(name = "HostServices.findByHostname",
       query = "SELECT r FROM HostServices r WHERE r.host.hostname = :hostname ORDER BY r.group, r.name"),
   @NamedQuery(name = "HostServices.findBy-Group", query = "SELECT r FROM HostServices r WHERE r.group = :group "),
   @NamedQuery(name = "HostServices.findBy-Group-Service",

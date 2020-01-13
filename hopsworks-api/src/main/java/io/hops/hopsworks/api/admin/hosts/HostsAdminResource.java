@@ -15,6 +15,10 @@
  */
 package io.hops.hopsworks.api.admin.hosts;
 
+import io.hops.hopsworks.api.admin.services.ServiceAction;
+import io.hops.hopsworks.api.admin.services.ServiceDTO;
+import io.hops.hopsworks.api.admin.services.ServicesBeanParam;
+import io.hops.hopsworks.api.admin.services.ServicesBuilder;
 import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.util.Pagination;
 import io.hops.hopsworks.common.api.ResourceRequest;
@@ -23,6 +27,7 @@ import io.hops.hopsworks.common.hosts.HostsController;
 import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
 import javax.ejb.EJB;
@@ -56,6 +61,8 @@ public class HostsAdminResource {
   private HostsController hostsController;
   @EJB
   private HostsBuilder hostsBuilder;
+  @EJB
+  private ServicesBuilder servicesBuilder;
   
   @ApiParam(value = "Get all cluster nodes.")
   @GET
@@ -102,5 +109,42 @@ public class HostsAdminResource {
     @PathParam("hostname") String hostname, HostDTO nodeToUpdate) {
     
     return hostsController.addOrUpdateClusterNode(uriInfo, hostname, nodeToUpdate);
+  }
+  
+  @ApiOperation(value = "Get metadata of all services for a specified host.")
+  @GET
+  @Path("/{hostname}/services")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getAllServices(
+    @Context UriInfo uriInfo,
+    @BeanParam Pagination pagination,
+    @BeanParam ServicesBeanParam servicesBeanParam,
+    @PathParam("hostname") String hostname) {
+    ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.SERVICES);
+    resourceRequest.setOffset(pagination.getOffset());
+    resourceRequest.setLimit(pagination.getLimit());
+    resourceRequest.setSort(servicesBeanParam.getSortBySet());
+    resourceRequest.setFilter(servicesBeanParam.getFilter());
+    ServiceDTO dto = servicesBuilder.buildItems(uriInfo, hostname,  resourceRequest);
+    return Response.ok().entity(dto).build();
+  }
+  
+  @ApiOperation(value = "Get metadata of a service.")
+  @GET
+  @Path("/{hostname}/services/{name}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getService(@Context UriInfo uriInfo, @PathParam("hostname") String hostname,
+    @PathParam("name") String name) throws ServiceException {
+    ServiceDTO dto = servicesBuilder.buildItems(uriInfo, name);
+    return Response.ok().entity(dto).build();
+  }
+  
+  @ApiOperation(value = "Start/stop a service.")
+  @PUT
+  @Path("/{hostname}/services/{name}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response updateService(@PathParam("name") String name, ServiceAction action) {
+    return null;//hostServicesController.updateService(name, action.getHostname(), action.getStatus());
   }
 }

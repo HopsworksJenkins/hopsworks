@@ -38,7 +38,17 @@ public class ServicesBuilder {
   private HostServicesController hostServicesController;
   
   private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo) {
-    dto.setHref(uriInfo.getBaseUriBuilder().build());
+    dto.setHref(uriInfo.getBaseUriBuilder()
+      .path(ResourceRequest.Name.SERVICES.toString())
+      .build());
+    return dto;
+  }
+  
+  private ServiceDTO uriHosts(ServiceDTO dto, UriInfo uriInfo, String hostname) {
+    dto.setHref(uriInfo.getBaseUriBuilder()
+      .path(ResourceRequest.Name.HOSTS.toString())
+      .path(hostname)
+      .build());
     return dto;
   }
   
@@ -52,7 +62,7 @@ public class ServicesBuilder {
     return dto;
   }
   
-  private ServiceDTO uri(ServiceDTO dto, UriInfo uriInfo, String serviceName) {
+  private ServiceDTO uriServices(ServiceDTO dto, UriInfo uriInfo, String serviceName) {
     dto.setHref(uriInfo.getBaseUriBuilder()
       .path(ResourceRequest.Name.SERVICES.toString())
       .path(serviceName)
@@ -64,8 +74,15 @@ public class ServicesBuilder {
     return uri(dto, uriInfo, service.getName(), service.getHost().getHostname());
   }
   
-  private ServiceDTO expand(ServiceDTO dto, ResourceRequest resourceRequest) {
+  private ServiceDTO expandServices(ServiceDTO dto, ResourceRequest resourceRequest) {
     if (resourceRequest != null && resourceRequest.contains(ResourceRequest.Name.SERVICES)) {
+      dto.setExpand(true);
+    }
+    return dto;
+  }
+  
+  private ServiceDTO expandHosts(ServiceDTO dto, ResourceRequest resourceRequest) {
+    if (resourceRequest != null && resourceRequest.contains(ResourceRequest.Name.HOSTS)) {
       dto.setExpand(true);
     }
     return dto;
@@ -74,10 +91,28 @@ public class ServicesBuilder {
   public ServiceDTO buildItems(UriInfo uriInfo, ResourceRequest resourceRequest) {
     ServiceDTO dto = new ServiceDTO();
     uri(dto, uriInfo);
-    expand(dto, resourceRequest);
+    expandServices(dto, resourceRequest);
     if (dto.isExpand()) {
       AbstractFacade.CollectionInfo collectionInfo = hostServicesFacade.findAll(resourceRequest.getOffset(),
         resourceRequest.getLimit(), resourceRequest.getFilter(), resourceRequest.getSort());
+      dto.setCount(collectionInfo.getCount());
+      collectionInfo.getItems().forEach((service) -> dto.addItem(build(uriInfo, (HostServices)
+        service)));
+    }
+    return dto;
+  }
+  
+  public ServiceDTO buildItems(UriInfo uriInfo, String hostname, ResourceRequest resourceRequest) {
+    ServiceDTO dto = new ServiceDTO();
+    uriHosts(dto, uriInfo, hostname);
+    expandHosts(dto, resourceRequest);
+    if (dto.isExpand()) {
+      AbstractFacade.CollectionInfo collectionInfo = hostServicesFacade.findByHostname(
+        hostname,
+        resourceRequest.getOffset(),
+        resourceRequest.getLimit(),
+        resourceRequest.getFilter(),
+        resourceRequest.getSort());
       dto.setCount(collectionInfo.getCount());
       collectionInfo.getItems().forEach((service) -> dto.addItem(build(uriInfo, (HostServices)
         service)));
@@ -102,7 +137,7 @@ public class ServicesBuilder {
   
   public ServiceDTO buildItems(UriInfo uriInfo, String serviceName) {
     ServiceDTO dto = new ServiceDTO();
-    uri(dto, uriInfo, serviceName);
+    uriServices(dto, uriInfo, serviceName);
     List<HostServices> services = hostServicesFacade.findServices(serviceName);
     dto.setCount(Integer.toUnsignedLong(services.size()));
     services.forEach((service) -> dto.addItem(build(uriInfo, (HostServices) service)));

@@ -113,10 +113,10 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
       .getResultList();
   }
 
-  public List<HostServices> findHostServiceByHostname(String hostname) {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findBy-Hostname", HostServices.class)
-        .setParameter("hostname", hostname);
-    return query.getResultList();
+  public List<HostServices> findByHostname(String hostname) {
+    return em.createNamedQuery("HostServices.findByHostname", HostServices.class)
+      .setParameter("hostname", hostname)
+      .getResultList();
   }
 
   public List<HostServices> findServices(String name) {
@@ -273,6 +273,22 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
     String queryCountStr = buildQuery("SELECT COUNT(DISTINCT h.id) FROM HostServices h ", filter, sort, "");
     Query query = em.createQuery(queryStr, HostServices.class);
     Query queryCount = em.createQuery(queryCountStr, HostServices.class);
+    setFilter(filter, query);
+    setFilter(filter, queryCount);
+    setOffsetAndLim(offset, limit, query);
+    return new CollectionInfo((Long) queryCount.getSingleResult(), query.getResultList());
+  }
+  
+  public CollectionInfo findByHostname(String hostname, Integer offset, Integer limit, Set<? extends FilterBy> filter,
+    Set<? extends SortBy> sort) {
+    String queryStr = buildQuery("SELECT DISTINCT h FROM HostServices h ", filter, sort,
+      "h.host.hostname = :hostname");
+    String queryCountStr = buildQuery("SELECT COUNT(DISTINCT h.id) FROM HostServices h ", filter, sort,
+      "h.host.hostname = :hostname");
+    Query query = em.createQuery(queryStr, HostServices.class)
+      .setParameter("hostname", hostname);
+    Query queryCount = em.createQuery(queryCountStr, HostServices.class)
+      .setParameter("hostname", hostname);
     setFilter(filter, query);
     setFilter(filter, queryCount);
     setOffsetAndLim(offset, limit, query);
