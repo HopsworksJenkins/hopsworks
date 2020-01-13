@@ -47,7 +47,6 @@ import io.hops.hopsworks.common.dao.host.ServiceStatus;
 import io.hops.hopsworks.exceptions.GenericException;
 import io.hops.hopsworks.exceptions.InvalidQueryException;
 import io.hops.hopsworks.restutils.RESTCodes;
-import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.common.util.WebCommunication;
 
 import java.util.ArrayList;
@@ -72,7 +71,7 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
   @EJB
   private WebCommunication web;
   @EJB
-  private HostsFacade hostEJB;
+  private HostsFacade hostsFacade;
 
   private static final Logger LOGGER = Logger.getLogger(HostServicesFacade.class.getName());
 
@@ -215,12 +214,8 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
     return result;
   }
 
-  public List<HostServices> updateHostServices(AgentController.AgentHeartbeatDTO heartbeat) throws ServiceException {
-    Hosts host = hostEJB.findByHostname(heartbeat.getHostId());
-    if (host == null) {
-      throw new ServiceException(RESTCodes.ServiceErrorCode.HOST_NOT_FOUND, Level.WARNING,
-        "hostId: " + heartbeat.getHostId());
-    }
+  public List<HostServices> updateHostServices(AgentController.AgentHeartbeatDTO heartbeat) {
+    Hosts host = hostsFacade.findByHostname(heartbeat.getHostId()).orElse(null);
     final List<HostServices> hostServices = new ArrayList<>(heartbeat.getServices().size());
     for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
       final String name = service.getService();
