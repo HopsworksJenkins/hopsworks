@@ -120,7 +120,7 @@ public class HostsAdminResource {
     @BeanParam Pagination pagination,
     @BeanParam ServicesBeanParam servicesBeanParam,
     @PathParam("hostname") String hostname) {
-    ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.SERVICES);
+    ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.HOSTS);
     resourceRequest.setOffset(pagination.getOffset());
     resourceRequest.setLimit(pagination.getLimit());
     resourceRequest.setSort(servicesBeanParam.getSortBySet());
