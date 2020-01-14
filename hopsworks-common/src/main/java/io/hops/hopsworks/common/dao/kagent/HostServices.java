@@ -62,24 +62,20 @@ import javax.validation.constraints.Size;
 @Entity
 @Table(name = "hopsworks.host_services")
 @NamedQueries({
-  @NamedQuery(name = "HostServices.findGroups", query = "SELECT DISTINCT r.group FROM HostServices r"),
-  @NamedQuery(name = "HostServices.find",
-      query = "SELECT r FROM HostServices r WHERE r.group = :group "
-      + "AND r.name = :name AND r.host.hostname = :hostname"),
+  @NamedQuery(name = "HostServices.findGroups",
+    query = "SELECT DISTINCT r.group FROM HostServices r"),
+  @NamedQuery(name = "HostServices.findByHostnameServiceNameGroup",
+    query = "SELECT r FROM HostServices r WHERE r.group = :group AND r.name = :name AND r.host.hostname = :hostname"),
   @NamedQuery(name = "HostServices.findByHostname",
-      query = "SELECT r FROM HostServices r WHERE r.host.hostname = :hostname ORDER BY r.group, r.name"),
-  @NamedQuery(name = "HostServices.findBy-Group", query = "SELECT r FROM HostServices r WHERE r.group = :group "),
-  @NamedQuery(name = "HostServices.findBy-Group-Service",
-      query = "SELECT r FROM HostServices r WHERE r.group = :group AND r.name = :name"),
-  @NamedQuery(name = "HostServices.findByServiceName", query = "SELECT r FROM HostServices r WHERE r.name = :name"),
-  @NamedQuery(name = "HostServices.Count",
-      query = "SELECT COUNT(r) FROM HostServices r WHERE r.group = :group AND r.name = :name"),
-  @NamedQuery(name = "HostServices.Count-services",
-      query = "SELECT COUNT(r) FROM HostServices r WHERE r.group = :group"),
-  @NamedQuery(name = "HostServices.DeleteBy-Hostname",
-      query = "DELETE FROM HostServices r WHERE r.host.hostname = :hostname"),
+    query = "SELECT r FROM HostServices r WHERE r.host.hostname = :hostname ORDER BY r.group, r.name"),
+  @NamedQuery(name = "HostServices.findByGroup",
+    query = "SELECT r FROM HostServices r WHERE r.group = :group "),
+  @NamedQuery(name = "HostServices.findByServiceName",
+    query = "SELECT r FROM HostServices r WHERE r.name = :name"),
+  @NamedQuery(name = "HostServices.CountServices",
+    query = "SELECT COUNT(r) FROM HostServices r WHERE r.group = :group"),
   @NamedQuery(name = "HostServices.findByServiceNameAndHostname",
-      query = "SELECT r FROM HostServices r WHERE r.host.hostname = :hostname AND r.name = :name")})
+    query = "SELECT r FROM HostServices r WHERE r.host.hostname = :hostname AND r.name = :name")})
 public class HostServices implements Serializable {
 
   private static final long serialVersionUID = 1L;

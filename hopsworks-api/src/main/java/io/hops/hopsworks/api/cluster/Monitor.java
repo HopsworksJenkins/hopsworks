@@ -42,12 +42,14 @@ package io.hops.hopsworks.api.cluster;
 import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.filter.NoCacheResponse;
 import io.hops.hopsworks.api.util.RESTApiJsonResponse;
+import io.hops.hopsworks.common.admin.services.HostServicesController;
 import io.hops.hopsworks.common.dao.host.Hosts;
 import io.hops.hopsworks.common.dao.host.HostsFacade;
 import io.hops.hopsworks.common.dao.kagent.HostServices;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
 import io.hops.hopsworks.common.dao.kagent.ServiceStatusDTO;
 import io.hops.hopsworks.exceptions.GenericException;
+import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
 import io.swagger.annotations.Api;
 
@@ -83,6 +85,8 @@ public class Monitor {
   private HostsFacade hostEjb;
   @EJB
   private NoCacheResponse noCacheResponse;
+  @EJB
+  private HostServicesController hostServicesController;
 
   @GET
   @Path("/services")
@@ -162,7 +166,7 @@ public class Monitor {
   @Produces(MediaType.APPLICATION_JSON)
   public Response serviceOp(@PathParam("groupName") String groupName, ServicesActionDTO action) throws 
       GenericException {
-    String result = hostServicesFacade.groupOp(groupName, action.getAction());
+    String result = hostServicesController.groupOp(groupName, action.getAction());
     RESTApiJsonResponse json = new RESTApiJsonResponse();
     json.setSuccessMessage(result);
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK).entity(json).build();
@@ -176,7 +180,7 @@ public class Monitor {
   public Response serviceOp(@PathParam("groupName") String groupName, @PathParam("serviceName") String serviceName,
       ServicesActionDTO action) throws GenericException {
     RESTApiJsonResponse json = new RESTApiJsonResponse();
-    json.setSuccessMessage(hostServicesFacade.serviceOp(serviceName, action.getAction()));
+    json.setSuccessMessage(hostServicesController.serviceOp(serviceName, action.getAction()));
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK).entity(json).build();
   }
 
@@ -188,9 +192,9 @@ public class Monitor {
   public Response serviceOnHostOp(@PathParam("groupName") String groupName,
       @PathParam("serviceName") String serviceName,
       @PathParam("hostId") String hostId,
-      ServicesActionDTO action) throws GenericException {
+      ServicesActionDTO action) throws GenericException, ServiceException {
     RESTApiJsonResponse json = new RESTApiJsonResponse();
-    json.setSuccessMessage(hostServicesFacade.serviceOnHostOp(groupName, serviceName, hostId, action.getAction()));
+    json.setSuccessMessage(hostServicesController.serviceOnHostOp(groupName, serviceName, hostId, action.getAction()));
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK).entity(json).build();
   }
 }

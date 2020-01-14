@@ -39,73 +39,54 @@
 
 package io.hops.hopsworks.common.dao.kagent;
 
-import io.hops.hopsworks.common.agent.AgentController;
 import io.hops.hopsworks.common.dao.AbstractFacade;
-import io.hops.hopsworks.common.dao.host.Hosts;
-import io.hops.hopsworks.common.dao.host.HostsFacade;
 import io.hops.hopsworks.common.dao.host.ServiceStatus;
-import io.hops.hopsworks.exceptions.GenericException;
 import io.hops.hopsworks.exceptions.InvalidQueryException;
-import io.hops.hopsworks.restutils.RESTCodes;
-import io.hops.hopsworks.common.util.WebCommunication;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ejb.EJB;
-import javax.persistence.NonUniqueResultException;
-import javax.ws.rs.core.Response;
 
 @Stateless
 public class HostServicesFacade extends AbstractFacade<HostServices> {
-
-  @EJB
-  private WebCommunication web;
-  @EJB
-  private HostsFacade hostsFacade;
 
   private static final Logger LOGGER = Logger.getLogger(HostServicesFacade.class.getName());
 
   @PersistenceContext(unitName = "kthfsPU")
   private EntityManager em;
   
-  public HostServicesFacade() {
-    super(HostServices.class);
-  }
-  
-  public HostServices find(String hostname, String group, String name) {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.find", HostServices.class)
-      .setParameter("hostname", hostname).setParameter("group", group)
-      .setParameter("name", name);
-    List results = query.getResultList();
-    if (results.isEmpty()) {
-      return null;
-    } else if (results.size() == 1) {
-      return (HostServices) results.get(0);
-    }
-    throw new NonUniqueResultException();
-  }
-  
   @Override
   protected EntityManager getEntityManager() {
     return em;
   }
+  
+  public HostServicesFacade() {
+    super(HostServices.class);
+  }
+  
+  public Optional<HostServices> findByHostnameServiceNameGroup(String hostname, String group, String name) {
+    try {
+      return Optional.of(em.createNamedQuery("HostServices.findByHostnameServiceNameGroup",
+        HostServices.class)
+        .setParameter("hostname", hostname)
+        .setParameter("group", group)
+        .setParameter("name", name)
+        .getSingleResult());
+    } catch (NoResultException e) {
+      return Optional.empty();
+    }
+  }
 
   public List<HostServices> findGroupServices(String group) {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.findBy-Group", HostServices.class)
-      .setParameter("group", group);
-    return query.getResultList();
+    return em.createNamedQuery("HostServices.findByGroup", HostServices.class)
+      .setParameter("group", group)
+      .getResultList();
   }
 
   public List<String> findGroups() {
@@ -125,146 +106,21 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
       .getResultList();
   }
 
-  public Long count(String group, String name) {
-    TypedQuery<Long> query = em.createNamedQuery("HostServices.Count", Long.class)
-      .setParameter("group", group)
-      .setParameter("name", name);
-    return query.getSingleResult();
-  }
-
   public Long countServices(String group) {
-    TypedQuery<Long> query = em.createNamedQuery("HostServices.Count-services", Long.class)
-        .setParameter("group", group);
-    return query.getSingleResult();
+    return em.createNamedQuery("HostServices.CountServices", Long.class)
+      .setParameter("group", group)
+      .getSingleResult();
   }
-
-  public void persist(HostServices hostService) {
-    em.persist(hostService);
-  }
-
-  public void store(HostServices service) {
-    TypedQuery<HostServices> query = em.createNamedQuery("HostServices.find", HostServices.class)
-      .setParameter("hostname", service.getHost().getHostname())
-      .setParameter("group", service.getGroup())
-      .setParameter("name", service.getName());
-    List<HostServices> s = query.getResultList();
-
-    if (s.size() > 0) {
-      service.setId(s.get(0).getId());
-      em.merge(service);
-    } else {
-      em.persist(service);
-    }
-  }
-
-  public void deleteServicesByHostname(String hostname) {
-    em.createNamedQuery("HostServices.DeleteBy-Hostname")
-      .setParameter("hostname", hostname)
-      .executeUpdate();
-  }
-
-  public String groupOp(String group, Action action) throws GenericException {
-    return webOp(action, findGroupServices(group));
-  }
-
-  public String serviceOp(String service, Action action) throws GenericException {
-    return webOp(action, findServices(service));
-  }
-
-  public String serviceOnHostOp(String group, String serviceName, String hostname,
-      Action action) throws GenericException {
-    return webOp(action, Collections.singletonList(find(hostname, group, serviceName)));
-  }
-
-  private String webOp(Action operation, List<HostServices> services) throws GenericException {
-    if (operation == null) {
-      throw new IllegalArgumentException("The action is not valid, valid action are " + Arrays.toString(
-              Action.values()));
-    }
-    if (services == null || services.isEmpty()) {
-      throw new IllegalArgumentException("service was not provided.");
-    }
-    String result = "";
-    boolean success = false;
-    int exception = Response.Status.BAD_REQUEST.getStatusCode();
-    for (HostServices service : services) {
-      Hosts h = service.getHost();
-      if (h != null) {
-        String ip = h.getPublicOrPrivateIp();
-        String agentPassword = h.getAgentPassword();
-        try {
-          result += service.toString() + " " + web.serviceOp(operation.value(), ip, agentPassword,
-              service.getGroup(), service.getName());
-          success = true;
-        } catch (GenericException ex) {
-          if (services.size() == 1) {
-            throw ex;
-          } else {
-            exception = ex.getErrorCode().getRespStatus().getStatusCode();
-            result += service.toString() + " " + ex.getErrorCode().getRespStatus() + " " + ex.getMessage();
-          }
-        }
-      } else {
-        result += service.toString() + " " + "host not found: " + service.getHost();
-      }
-      result += "\n";
-    }
-    if (!success) {
-      throw new GenericException(RESTCodes.GenericErrorCode.UNKNOWN_ERROR, Level.SEVERE,
-        "webOp error, exception: " + exception + ", " + "result: " + result);
-    }
-    return result;
-  }
-
-  public List<HostServices> updateHostServices(AgentController.AgentHeartbeatDTO heartbeat) {
-    Hosts host = hostsFacade.findByHostname(heartbeat.getHostId()).orElse(null);
-    final List<HostServices> hostServices = new ArrayList<>(heartbeat.getServices().size());
-    for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
-      final String name = service.getService();
-      final String group = service.getGroup();
-      HostServices hostService = null;
-      try {
-        hostService = find(heartbeat.getHostId(), group, name);
-      } catch (Exception ex) {
-        LOGGER.log(Level.WARNING, "Could not find service for " + heartbeat.getHostId() + "/" + group + "/" + name);
-        continue;
-      }
-      
-      if (hostService == null) {
-        hostService = new HostServices();
-        hostService.setHost(host);
-        hostService.setGroup(group);
-        hostService.setName(name);
-        hostService.setStartTime(heartbeat.getAgentTime());
-      }
   
-      final Integer pid = service.getPid() != null ? service.getPid(): -1;
-      hostService.setPid(pid);
-      if (service.getStatus() != null) {
-        if ((hostService.getStatus() == null || hostService.getStatus() != ServiceStatus.STARTED)
-            && service.getStatus() == ServiceStatus.STARTED) {
-          hostService.setStartTime(heartbeat.getAgentTime());
-        }
-        hostService.setStatus(service.getStatus());
-      } else {
-        hostService.setStatus(ServiceStatus.NONE);
-      }
-  
-      if (service.getStatus() == ServiceStatus.STARTED) {
-        hostService.setStopTime(heartbeat.getAgentTime());
-      }
-      final Long startTime = hostService.getStartTime();
-      final Long stopTime = hostService.getStopTime();
-      if (startTime != null && stopTime != null) {
-        hostService.setUptime(stopTime - startTime);
-      } else {
-        hostService.setUptime(0L);
-      }
-      
-      store(hostService);
-      hostServices.add(hostService);
+  public Optional<HostServices> findByServiceName(String serviceName, String hostname) {
+    try {
+      return Optional.of(em.createNamedQuery("HostServices.findByServiceNameAndHostname", HostServices.class)
+        .setParameter("name", serviceName)
+        .setParameter("hostname", hostname)
+        .getSingleResult());
+    } catch (NoResultException e) {
+      return Optional.empty();
     }
-    return hostServices;
   }
   
   public CollectionInfo findAll(Integer offset, Integer limit, Set<? extends FilterBy> filter,
@@ -343,17 +199,6 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
       }
     }
     return val;
-  }
-  
-  public Optional<HostServices> findByServiceName(String serviceName, String hostname) {
-    try {
-      return Optional.of(em.createNamedQuery("HostServices.findByServiceNameAndHostname", HostServices.class)
-      .setParameter("name", serviceName)
-      .setParameter("hostname", hostname)
-      .getSingleResult());
-    } catch (NoResultException e) {
-      return Optional.empty();
-    }
   }
   
   public enum Sorts {

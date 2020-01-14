@@ -15,10 +15,10 @@
  */
 package io.hops.hopsworks.api.admin.hosts;
 
-import io.hops.hopsworks.api.admin.services.ServiceAction;
 import io.hops.hopsworks.api.admin.services.ServiceDTO;
 import io.hops.hopsworks.api.admin.services.ServicesBeanParam;
 import io.hops.hopsworks.api.admin.services.ServicesBuilder;
+import io.hops.hopsworks.api.cluster.ServicesActionDTO;
 import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.util.Pagination;
 import io.hops.hopsworks.common.admin.services.HostServicesController;
@@ -149,7 +149,8 @@ public class HostsAdminResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
   public Response updateService(@PathParam("name") String name, @PathParam("hostname") String hostname,
-    ServiceAction action) throws ServiceException, GenericException {
-    return hostServicesController.updateService(hostname, name, action.getStatus());
+    ServicesActionDTO action) throws ServiceException, GenericException {
+    hostServicesController.updateService(hostname, name, action.getAction());
+    return Response.ok().build();
   }
 }

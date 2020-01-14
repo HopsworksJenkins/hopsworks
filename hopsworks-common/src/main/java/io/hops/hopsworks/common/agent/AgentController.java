@@ -17,6 +17,7 @@
 package io.hops.hopsworks.common.agent;
 
 import com.google.gson.Gson;
+import io.hops.hopsworks.common.admin.services.HostServicesController;
 import io.hops.hopsworks.common.dao.command.HeartbeatReplyDTO;
 import io.hops.hopsworks.common.dao.command.SystemCommand;
 import io.hops.hopsworks.common.dao.command.SystemCommandFacade;
@@ -89,6 +90,8 @@ public class AgentController {
   private AgentLivenessMonitor agentLivenessMonitor;
   @EJB
   private HostsController hostsController;
+  @EJB
+  private HostServicesController hostServicesController;
 
 
   public String register(String hostId, String password) throws ServiceException {
@@ -204,7 +207,7 @@ public class AgentController {
   }
 
   private void updateServices(AgentHeartbeatDTO heartbeat) throws ServiceException {
-    hostServicesFacade.updateHostServices(heartbeat);
+    hostServicesController.updateHostServices(heartbeat);
   }
 
   private void processCondaCommands(AgentHeartbeatDTO heartbeatDTO) throws ServiceException {

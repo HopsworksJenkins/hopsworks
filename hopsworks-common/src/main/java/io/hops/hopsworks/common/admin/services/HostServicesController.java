@@ -15,8 +15,10 @@
  */
 package io.hops.hopsworks.common.admin.services;
 
+import io.hops.hopsworks.common.agent.AgentController;
 import io.hops.hopsworks.common.dao.host.Hosts;
 import io.hops.hopsworks.common.dao.host.ServiceStatus;
+import io.hops.hopsworks.common.dao.kagent.Action;
 import io.hops.hopsworks.common.dao.kagent.HostServices;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
 import io.hops.hopsworks.common.hosts.HostsController;
@@ -30,6 +32,10 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,19 +72,140 @@ public class HostServicesController {
     return service.get();
   }
   
-  public Response updateService(String hostname, String serviceName, ServiceStatus status) throws ServiceException,
-    GenericException {
-    if (status != ServiceStatus.STARTED && status != ServiceStatus.STOPPED) {
-      throw new ServiceException(RESTCodes.ServiceErrorCode.OPERATION_NOT_SUPPORTED, Level.WARNING,
-        "status: " + status);
+  public HostServices findByHostnameServiceNameGroup(String hostname, String group, String name)
+    throws ServiceException {
+    Optional<HostServices> service = hostServicesFacade.findByHostnameServiceNameGroup(hostname, group, name);
+    if (!service.isPresent()) {
+      throw new ServiceException(RESTCodes.ServiceErrorCode.SERVICE_NOT_FOUND, Level.WARNING,
+        "name: " + name + ", hostname: " + hostname + ", group: " + group);
     }
-    String operation = status == ServiceStatus.STARTED ? "startService" : "stopService";
+    return service.get();
+  }
+  
+  public void updateService(String hostname, String serviceName, Action action) throws ServiceException,
+    GenericException {
     Hosts host = hostsController.findByHostname(hostname);
     HostServices service = findByName(serviceName, hostname);
     String ip = host.getPublicOrPrivateIp();
     String agentPassword = host.getAgentPassword();
-    String response = web.serviceOp(operation ,ip, agentPassword, service.getGroup(), service.getName());
-    LOGGER.log(Level.FINE, "Update service response: " + response);
-    return Response.ok().entity(response).build();
+    web.asyncServiceOp(action.value() ,ip, agentPassword, service.getGroup(), service.getName());
+  }
+  
+  public String groupOp(String group, Action action) throws GenericException {
+    return webOp(action, hostServicesFacade.findGroupServices(group));
+  }
+  
+  public String serviceOp(String service, Action action) throws GenericException {
+    return webOp(action, hostServicesFacade.findServices(service));
+  }
+  
+  public String serviceOnHostOp(String group, String serviceName, String hostname,
+    Action action) throws GenericException, ServiceException {
+    return webOp(action, Collections.singletonList(findByHostnameServiceNameGroup(hostname, group, serviceName)));
+  }
+  
+  private String webOp(Action operation, List<HostServices> services) throws GenericException {
+    if (operation == null) {
+      throw new IllegalArgumentException("The action is not valid, valid action are " + Arrays.toString(
+        Action.values()));
+    }
+    if (services == null || services.isEmpty()) {
+      throw new IllegalArgumentException("service was not provided.");
+    }
+    String result = "";
+    boolean success = false;
+    int exception = Response.Status.BAD_REQUEST.getStatusCode();
+    for (HostServices service : services) {
+      Hosts h = service.getHost();
+      if (h != null) {
+        String ip = h.getPublicOrPrivateIp();
+        String agentPassword = h.getAgentPassword();
+        try {
+          result += service.toString() + " " + web.serviceOp(operation.value(), ip, agentPassword,
+            service.getGroup(), service.getName());
+          success = true;
+        } catch (GenericException ex) {
+          if (services.size() == 1) {
+            throw ex;
+          } else {
+            exception = ex.getErrorCode().getRespStatus().getStatusCode();
+            result += service.toString() + " " + ex.getErrorCode().getRespStatus() + " " + ex.getMessage();
+          }
+        }
+      } else {
+        result += service.toString() + " " + "host not found: " + service.getHost();
+      }
+      result += "\n";
+    }
+    if (!success) {
+      throw new GenericException(RESTCodes.GenericErrorCode.UNKNOWN_ERROR, Level.SEVERE,
+        "webOp error, exception: " + exception + ", " + "result: " + result);
+    }
+    return result;
+  }
+  
+  public List<HostServices> updateHostServices(AgentController.AgentHeartbeatDTO heartbeat) throws ServiceException {
+    Hosts host = hostsController.findByHostname(heartbeat.getHostId());
+    final List<HostServices> hostServices = new ArrayList<>(heartbeat.getServices().size());
+    for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
+      final String name = service.getService();
+      final String group = service.getGroup();
+      HostServices hostService = null;
+      try {
+        hostService = findByHostnameServiceNameGroup(heartbeat.getHostId(), group, name);
+      } catch (Exception ex) {
+        LOGGER.log(Level.WARNING, "Could not find service for " + heartbeat.getHostId() + "/" + group + "/" + name);
+        continue;
+      }
+      
+      if (hostService == null) {
+        hostService = new HostServices();
+        hostService.setHost(host);
+        hostService.setGroup(group);
+        hostService.setName(name);
+        hostService.setStartTime(heartbeat.getAgentTime());
+      }
+      
+      final Integer pid = service.getPid() != null ? service.getPid(): -1;
+      hostService.setPid(pid);
+      if (service.getStatus() != null) {
+        if ((hostService.getStatus() == null || hostService.getStatus() != ServiceStatus.STARTED)
+          && service.getStatus() == ServiceStatus.STARTED) {
+          hostService.setStartTime(heartbeat.getAgentTime());
+        }
+        hostService.setStatus(service.getStatus());
+      } else {
+        hostService.setStatus(ServiceStatus.NONE);
+      }
+      
+      if (service.getStatus() == ServiceStatus.STARTED) {
+        hostService.setStopTime(heartbeat.getAgentTime());
+      }
+      final Long startTime = hostService.getStartTime();
+      final Long stopTime = hostService.getStopTime();
+      if (startTime != null && stopTime != null) {
+        hostService.setUptime(stopTime - startTime);
+      } else {
+        hostService.setUptime(0L);
+      }
+      
+      store(hostService);
+      hostServices.add(hostService);
+    }
+    return hostServices;
+  }
+  
+  public void store(HostServices service) {
+    Optional<HostServices> s = hostServicesFacade.findByHostnameServiceNameGroup(
+      service.getHost().getHostname(),
+      service.getGroup(),
+      service.getName());
+    
+    if (s.isPresent()) {
+      service.setId(s.get().getId());
+      hostServicesFacade.update(service);
+    } else {
+      hostServicesFacade.save(service);
+    }
   }
 }
