@@ -47,13 +47,13 @@ import javax.xml.bind.annotation.XmlType;
 @XmlEnum
 public enum Action {
   @XmlEnumValue("START")
-  START("startRole"),
+  START("startService"),
 
   @XmlEnumValue("RESTART")
-  RESTART("restartRole"),
+  RESTART("restartService"),
 
   @XmlEnumValue("STOP")
-  STOP("stopRole");
+  STOP("stopService");
 
   private final String value;
 
