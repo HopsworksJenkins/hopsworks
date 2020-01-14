@@ -21,9 +21,11 @@ import io.hops.hopsworks.api.admin.services.ServicesBeanParam;
 import io.hops.hopsworks.api.admin.services.ServicesBuilder;
 import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.util.Pagination;
+import io.hops.hopsworks.common.admin.services.HostServicesController;
 import io.hops.hopsworks.common.api.ResourceRequest;
 import io.hops.hopsworks.common.dao.host.HostDTO;
 import io.hops.hopsworks.common.hosts.HostsController;
+import io.hops.hopsworks.exceptions.GenericException;
 import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
 import io.swagger.annotations.Api;
@@ -34,6 +36,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -63,6 +66,8 @@ public class HostsAdminResource {
   private HostsBuilder hostsBuilder;
   @EJB
   private ServicesBuilder servicesBuilder;
+  @EJB
+  private HostServicesController hostServicesController;
   
   @ApiParam(value = "Get all cluster nodes.")
   @GET
@@ -143,8 +148,9 @@ public class HostsAdminResource {
   @PUT
   @Path("/{hostname}/services/{name}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response updateService(@PathParam("name") String name, ServiceAction action) {
-    return null;//hostServicesController.updateService(name, action.getHostname(), action.getStatus());
+  @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+  public Response updateService(@PathParam("name") String name, @PathParam("hostname") String hostname,
+    ServiceAction action) throws ServiceException, GenericException {
+    return hostServicesController.updateService(hostname, name, action.getStatus());
   }
 }

@@ -15,9 +15,13 @@
  */
 package io.hops.hopsworks.common.admin.services;
 
+import io.hops.hopsworks.common.dao.host.Hosts;
 import io.hops.hopsworks.common.dao.host.ServiceStatus;
 import io.hops.hopsworks.common.dao.kagent.HostServices;
 import io.hops.hopsworks.common.dao.kagent.HostServicesFacade;
+import io.hops.hopsworks.common.hosts.HostsController;
+import io.hops.hopsworks.common.util.WebCommunication;
+import io.hops.hopsworks.exceptions.GenericException;
 import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.restutils.RESTCodes;
 
@@ -35,6 +39,10 @@ public class HostServicesController {
   
   @EJB
   private HostServicesFacade hostServicesFacade;
+  @EJB
+  private WebCommunication web;
+  @EJB
+  private HostsController hostsController;
   
   
   public HostServices find(Long serviceId) throws ServiceException {
@@ -55,7 +63,18 @@ public class HostServicesController {
     return service.get();
   }
   
-  public Response updateService(String serviceName, String hostname, ServiceStatus status) {
-    return null;
+  public Response updateService(String hostname, String serviceName, ServiceStatus status) throws ServiceException,
+    GenericException {
+    if (status != ServiceStatus.STARTED && status != ServiceStatus.FAILED) {
+      throw new ServiceException(RESTCodes.ServiceErrorCode.OPERATION_NOT_SUPPORTED, Level.WARNING,
+        "status: " + status);
+    }
+    String operation = status == ServiceStatus.STARTED ? "startService" : "stopService";
+    Hosts host = hostsController.findByHostname(hostname);
+    HostServices service = findByName(serviceName, hostname);
+    String ip = host.getPublicOrPrivateIp();
+    String agentPassword = host.getAgentPassword();
+    String response = web.serviceOp(operation ,ip, agentPassword, service.getGroup(), service.getName());
+    return Response.ok().entity(response).build();
   }
 }
