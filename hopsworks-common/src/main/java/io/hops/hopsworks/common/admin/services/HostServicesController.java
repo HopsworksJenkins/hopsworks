@@ -143,14 +143,14 @@ public class HostServicesController {
   }
   
   public List<HostServices> updateHostServices(AgentController.AgentHeartbeatDTO heartbeat) throws ServiceException {
-    for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
-      LOGGER.log(Level.FINE, "!!! hostname:" + heartbeat.getHostId() + "/" + service.getService() + "/" +
-        service.getGroup() + "/" + service.getStatus());
-    }
+//    for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
+//      LOGGER.log(Level.FINE, "!!! hostname:" + heartbeat.getHostId() + "/" + service.getName() + "/" +
+//        service.getGroup() + "/" + service.getStatus());
+//    }
     Hosts host = hostsController.findByHostname(heartbeat.getHostId());
     final List<HostServices> hostServices = new ArrayList<>(heartbeat.getServices().size());
     for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
-      final String name = service.getService();
+      final String name = service.getName();
       final String group = service.getGroup();
       HostServices hostService;
       try {

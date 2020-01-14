@@ -531,21 +531,21 @@ public class AgentController {
   }
 
   public static class AgentServiceDTO {
-    private final String service;
+    private final String name;
     private final String group;
     private final Integer pid;
     private final ServiceStatus status;
 
-    public AgentServiceDTO(final String service, final String group,
+    public AgentServiceDTO(final String name, final String group,
                            final Integer pid, final ServiceStatus status) {
-      this.service = service;
+      this.name = name;
       this.group = group;
       this.pid = pid;
       this.status = status;
     }
 
-    public String getService() {
-      return service;
+    public String getName() {
+      return name;
     }
 
     public String getGroup() {
