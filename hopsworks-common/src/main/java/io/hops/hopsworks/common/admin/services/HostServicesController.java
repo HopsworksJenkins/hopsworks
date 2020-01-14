@@ -32,6 +32,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NEVER)
@@ -43,6 +44,8 @@ public class HostServicesController {
   private WebCommunication web;
   @EJB
   private HostsController hostsController;
+  
+  private static final Logger LOGGER = Logger.getLogger(HostServicesController.class.getName());
   
   
   public HostServices find(Long serviceId) throws ServiceException {
@@ -75,6 +78,7 @@ public class HostServicesController {
     String ip = host.getPublicOrPrivateIp();
     String agentPassword = host.getAgentPassword();
     String response = web.serviceOp(operation ,ip, agentPassword, service.getGroup(), service.getName());
+    LOGGER.log(Level.FINE, "Update service response: " + response);
     return Response.ok().entity(response).build();
   }
 }
