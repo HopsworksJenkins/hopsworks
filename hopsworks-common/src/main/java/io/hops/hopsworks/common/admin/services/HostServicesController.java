@@ -68,7 +68,7 @@ public class HostServicesController {
   
   public Response updateService(String hostname, String serviceName, ServiceStatus status) throws ServiceException,
     GenericException {
-    if (status != ServiceStatus.STARTED && status != ServiceStatus.FAILED) {
+    if (status != ServiceStatus.STARTED && status != ServiceStatus.STOPPED) {
       throw new ServiceException(RESTCodes.ServiceErrorCode.OPERATION_NOT_SUPPORTED, Level.WARNING,
         "status: " + status);
     }
