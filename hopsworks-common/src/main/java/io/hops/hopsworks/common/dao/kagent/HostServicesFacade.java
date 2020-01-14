@@ -241,8 +241,8 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
       final Integer pid = service.getPid() != null ? service.getPid(): -1;
       hostService.setPid(pid);
       if (service.getStatus() != null) {
-        if ((hostService.getStatus() == null || !hostService.getStatus().equals(ServiceStatus.STARTED))
-            && service.getStatus().equals(ServiceStatus.STARTED)) {
+        if ((hostService.getStatus() == null || hostService.getStatus() != ServiceStatus.STARTED)
+            && service.getStatus() == ServiceStatus.STARTED) {
           hostService.setStartTime(heartbeat.getAgentTime());
         }
         hostService.setStatus(service.getStatus());
@@ -250,7 +250,7 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
         hostService.setStatus(ServiceStatus.NONE);
       }
   
-      if (service.getStatus().equals(ServiceStatus.STARTED)) {
+      if (service.getStatus() == ServiceStatus.STARTED) {
         hostService.setStopTime(heartbeat.getAgentTime());
       }
       final Long startTime = hostService.getStartTime();
