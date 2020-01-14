@@ -147,7 +147,7 @@ public class HostServicesController {
     final List<HostServices> hostServices = new ArrayList<>(heartbeat.getServices().size());
     for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
       LOGGER.log(Level.FINE, "!!!@@@ " + service.getService() + "/" + service.getGroup() + "/"
-        + service.getStatus().name());
+        + service.getStatus());
       final String name = service.getService();
       final String group = service.getGroup();
       HostServices hostService;
