@@ -82,13 +82,10 @@ public class HostServicesController {
     return service.get();
   }
   
-  public void updateService(String hostname, String serviceName, Action action) throws ServiceException,
-    GenericException {
-    Hosts host = hostsController.findByHostname(hostname);
+  public void updateService(String hostname, String serviceName, Action action)
+    throws ServiceException, GenericException {
     HostServices service = findByName(serviceName, hostname);
-    String ip = host.getPublicOrPrivateIp();
-    String agentPassword = host.getAgentPassword();
-    web.asyncServiceOp(action.value() ,ip, agentPassword, service.getGroup(), service.getName());
+    webOp(action, Collections.singletonList(service));
   }
   
   public String groupOp(String group, Action action) throws GenericException {
@@ -112,7 +109,7 @@ public class HostServicesController {
     if (services == null || services.isEmpty()) {
       throw new IllegalArgumentException("service was not provided.");
     }
-    String result = "";
+    StringBuilder result = new StringBuilder();
     boolean success = false;
     int exception = Response.Status.BAD_REQUEST.getStatusCode();
     for (HostServices service : services) {
@@ -121,27 +118,28 @@ public class HostServicesController {
         String ip = h.getPublicOrPrivateIp();
         String agentPassword = h.getAgentPassword();
         try {
-          result += service.toString() + " " + web.serviceOp(operation.value(), ip, agentPassword,
-            service.getGroup(), service.getName());
+          result.append(service.toString()).append(" ").append(web.serviceOp(operation.value(), ip, agentPassword,
+            service.getGroup(), service.getName()));
           success = true;
         } catch (GenericException ex) {
           if (services.size() == 1) {
             throw ex;
           } else {
             exception = ex.getErrorCode().getRespStatus().getStatusCode();
-            result += service.toString() + " " + ex.getErrorCode().getRespStatus() + " " + ex.getMessage();
+            result.append(service.toString()).append(" ").append(ex.getErrorCode().getRespStatus()).append(" ")
+              .append(ex.getMessage());
           }
         }
       } else {
-        result += service.toString() + " " + "host not found: " + service.getHost();
+        result.append(service.toString()).append(" ").append("host not found: ").append(service.getHost());
       }
-      result += "\n";
+      result.append("\n");
     }
     if (!success) {
       throw new GenericException(RESTCodes.GenericErrorCode.UNKNOWN_ERROR, Level.SEVERE,
-        "webOp error, exception: " + exception + ", " + "result: " + result);
+        "webOp error, exception: " + exception + ", " + "result: " + result.toString());
     }
-    return result;
+    return result.toString();
   }
   
   public List<HostServices> updateHostServices(AgentController.AgentHeartbeatDTO heartbeat) throws ServiceException {
@@ -150,9 +148,10 @@ public class HostServicesController {
     for (final AgentController.AgentServiceDTO service : heartbeat.getServices()) {
       final String name = service.getService();
       final String group = service.getGroup();
-      HostServices hostService = null;
+      HostServices hostService;
       try {
-        hostService = findByHostnameServiceNameGroup(heartbeat.getHostId(), group, name);
+        hostService = hostServicesFacade.findByHostnameServiceNameGroup(heartbeat.getHostId(), group, name)
+          .orElse(null);
       } catch (Exception ex) {
         LOGGER.log(Level.WARNING, "Could not find service for " + heartbeat.getHostId() + "/" + group + "/" + name);
         continue;
