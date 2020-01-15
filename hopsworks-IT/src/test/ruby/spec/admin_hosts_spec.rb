@@ -125,6 +125,20 @@ describe "On #{ENV['OS']}" do
       end
     end
 
+    context "does operations on host services with admin authentication" do
+      before :all do
+        with_admin_session()
+        @hostname = find_all_hostnames().first
+      end
+
+      it "gets list of services of a hostname" do
+        get_host_services(@hostname)
+        expect_status(200)
+        expect(json_body[:count]).to be > 0
+      end
+
+    end
+
     context 'Cluster nodes sorts and filters with admin authentication' do
       before :all do
         with_admin_session()
@@ -432,8 +446,6 @@ describe "On #{ENV['OS']}" do
         expect(res).to eq(nil)
         expect(count).to eq(json_body[:count])
       end
-
-
     end
   end
 end
