@@ -84,6 +84,10 @@ public class HostServicesController {
   
   public void updateService(String hostname, String serviceName, Action action)
     throws ServiceException, GenericException {
+    if (!Action.START_SERVICE.equals(action) && !Action.RESTART_SERVICE.equals(action) && !Action.STOP_SERVICE.equals
+      (action)) {
+      throw new ServiceException(RESTCodes.ServiceErrorCode.ACTION_FORBIDDEN, Level.WARNING, "action: " + action);
+    }
     HostServices service = findByName(serviceName, hostname);
     webOp(action, Collections.singletonList(service));
   }
