@@ -76,13 +76,13 @@ public class GroupInfo {
 
     Map<ServiceStatus, Integer> statusMap = new TreeMap<>();
     if (started > 0) {
-      statusMap.put(ServiceStatus.STARTED, started);
+      statusMap.put(ServiceStatus.Started, started);
     }
     if (stopped > 0) {
-      statusMap.put(ServiceStatus.STOPPED, stopped);
+      statusMap.put(ServiceStatus.Stopped, stopped);
     }
     if (timedOut > 0) {
-      statusMap.put(ServiceStatus.TIMED_OUT, timedOut);
+      statusMap.put(ServiceStatus.TimedOut, timedOut);
     }
     return statusMap;
   }
@@ -112,11 +112,11 @@ public class GroupInfo {
         continue;
       }
       this.services.add(serviceHostInfo.getName());
-      if (serviceHostInfo.getStatus() == ServiceStatus.STARTED) {
+      if (serviceHostInfo.getStatus() == ServiceStatus.Started) {
         started += 1;
       } else {
         badServices.add(serviceHostInfo.getName());
-        if (serviceHostInfo.getStatus() == ServiceStatus.STOPPED) {
+        if (serviceHostInfo.getStatus() == ServiceStatus.Stopped) {
           stopped += 1;
         } else {
           timedOut += 1;

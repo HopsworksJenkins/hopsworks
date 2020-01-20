@@ -226,7 +226,7 @@ public class HostServices implements Serializable {
   }
 
   public Health getHealth() {
-    if (status == ServiceStatus.FAILED || status == ServiceStatus.STOPPED) {
+    if (status == ServiceStatus.Failed || status == ServiceStatus.Stopped) {
       return Health.Bad;
     }
     return Health.Good;

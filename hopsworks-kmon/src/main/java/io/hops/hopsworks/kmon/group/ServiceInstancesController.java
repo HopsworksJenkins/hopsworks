@@ -129,7 +129,7 @@ public class ServiceInstancesController {
     List<InstanceInfo> instances = getInstances();
     if (!instances.isEmpty()) {
       for (InstanceInfo instance : instances) {
-        if (instance.getStatus() == ServiceStatus.STOPPED) {
+        if (instance.getStatus() == ServiceStatus.Stopped) {
           return false;
         }
       }
@@ -141,7 +141,7 @@ public class ServiceInstancesController {
     List<InstanceInfo> instances = getInstances();
     if (!instances.isEmpty()) {
       for (InstanceInfo instance : instances) {
-        if (instance.getStatus() == ServiceStatus.STARTED) {
+        if (instance.getStatus() == ServiceStatus.Started) {
           return false;
         }
       }

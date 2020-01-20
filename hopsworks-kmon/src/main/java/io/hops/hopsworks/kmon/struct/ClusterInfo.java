@@ -122,13 +122,13 @@ public class ClusterInfo {
 
     Map<ServiceStatus, Integer> statusMap = new TreeMap<ServiceStatus, Integer>();
     if (started > 0) {
-      statusMap.put(ServiceStatus.STARTED, started);
+      statusMap.put(ServiceStatus.Started, started);
     }
     if (stopped > 0) {
-      statusMap.put(ServiceStatus.STOPPED, stopped);
+      statusMap.put(ServiceStatus.Stopped, stopped);
     }
     if (timedOut > 0) {
-      statusMap.put(ServiceStatus.TIMED_OUT, timedOut);
+      statusMap.put(ServiceStatus.TimedOut, timedOut);
     }
     return statusMap;
   }
@@ -141,13 +141,13 @@ public class ClusterInfo {
       }
       services.add(serviceHost.getName());
       servicesGroupsMap.put(serviceHost.getName(), serviceHost.getGroup());
-      if (serviceHost.getStatus() == ServiceStatus.STARTED) {
+      if (serviceHost.getStatus() == ServiceStatus.Started) {
         started += 1;
       } else {
         badServices.add(serviceHost.getName());
-        if (serviceHost.getStatus() == ServiceStatus.STOPPED) {
+        if (serviceHost.getStatus() == ServiceStatus.Stopped) {
           stopped += 1;
-        } else if (serviceHost.getStatus() == ServiceStatus.TIMED_OUT) {
+        } else if (serviceHost.getStatus() == ServiceStatus.TimedOut) {
           timedOut += 1;
         }
       }

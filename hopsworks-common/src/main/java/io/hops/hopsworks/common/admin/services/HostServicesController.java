@@ -176,16 +176,16 @@ public class HostServicesController {
       final Integer pid = service.getPid() != null ? service.getPid(): -1;
       hostService.setPid(pid);
       if (service.getStatus() != null) {
-        if ((hostService.getStatus() == null || hostService.getStatus() != ServiceStatus.STARTED)
-          && service.getStatus() == ServiceStatus.STARTED) {
+        if ((hostService.getStatus() == null || hostService.getStatus() != ServiceStatus.Started)
+          && service.getStatus() == ServiceStatus.Started) {
           hostService.setStartTime(heartbeat.getAgentTime());
         }
         hostService.setStatus(service.getStatus());
       } else {
-        hostService.setStatus(ServiceStatus.NONE);
+        hostService.setStatus(ServiceStatus.None);
       }
       
-      if (service.getStatus() == ServiceStatus.STARTED) {
+      if (service.getStatus() == ServiceStatus.Started) {
         hostService.setStopTime(heartbeat.getAgentTime());
       }
       final Long startTime = hostService.getStartTime();

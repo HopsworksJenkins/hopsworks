@@ -188,8 +188,7 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
     }
     ServiceStatus val;
     try {
-      int v = Integer.parseInt(value);
-      val = ServiceStatus.fromValue(v);
+      val = ServiceStatus.valueOf(value);
     } catch (IllegalArgumentException e) {
       try {
         val = ServiceStatus.valueOf(value);
