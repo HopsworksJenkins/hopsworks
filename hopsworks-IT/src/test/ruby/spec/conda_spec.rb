@@ -43,8 +43,8 @@ describe "On #{ENV['OS']}" do
 
     let(:num_hosts) {Host.count}
     let(:conda_channel) {Variables.find_by(id: "conda_default_repo").value}
-    let(:python_version) {'2.7'}
-    let(:python_version_2) {'3.6'}
+    let(:python_version) {'3.6'}
+    let(:python_version_2) {'3.7'}
 
     describe "#create" do
       context 'without authentication' do
@@ -276,7 +276,7 @@ describe "On #{ENV['OS']}" do
 
           it 'should fail if you try to use another package manager' do
             @project = create_env_and_update_project(@project, python_version)
-            install_library(@project[:id], python_version_2, 'dropbox', 'cargo', '9.0.0', 'CPU', conda_channel)
+            install_library(@project[:id], python_version, 'dropbox', 'cargo', '9.0.0', 'CPU', conda_channel)
             expect_status(404)
           end
 
@@ -404,7 +404,6 @@ describe "On #{ENV['OS']}" do
             wait_for do
               CondaCommands.find_by(proj: @project[:projectname]).nil?
             end
-            expect(check_if_env_exists_locally("python27")).to be true
             expect(check_if_env_exists_locally("python36")).to be true
           end
 
