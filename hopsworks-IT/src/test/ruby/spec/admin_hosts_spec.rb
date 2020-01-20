@@ -139,10 +139,16 @@ describe "On #{ENV['OS']}" do
 
       it "gets service metadata by name" do
         hosts_get_host_services(@hostname)
-        name = json_body[:items].first[name]
+        name = json_body[:items].first[:name]
         hosts_get_host_service_by_name(@hostname, name)
         expect_status(200)
         expect(json_body[:name]).to eq(name)
+      end
+
+      it "stops a service" do
+      end
+
+      it "stops and starts a service" do
       end
 
     end
