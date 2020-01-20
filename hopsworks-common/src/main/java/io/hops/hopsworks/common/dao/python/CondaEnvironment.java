@@ -37,26 +37,93 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.hops.hopsworks.common.jobs.yarn;
+package io.hops.hopsworks.common.dao.python;
 
-/**
- *
- * <p>
- */
-public class AnacondaProperties {
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 
-  private String envPath;
+@Entity
+@Table(name = "conda_environment",
+        catalog = "hopsworks",
+        schema = "")
+@XmlRootElement
+public class CondaEnvironment implements Serializable {
 
-  public AnacondaProperties(String envPath) {
-    this.envPath = envPath;
+  private static final long serialVersionUID = 1L;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Basic(optional = false)
+  @Column(name = "id")
+  private Integer id;
+
+  @NotNull
+  @Size(min = 1,
+          max = 20)
+  @Column(name = "tf_version")
+  private String tfVersion;
+
+  @NotNull
+  @Size(min = 1,
+      max = 20)
+  @Column(name = "python_version")
+  private String pythonVersion;
+
+  public Integer getId() {
+    return id;
   }
 
-  public String getEnvPath() {
-    return envPath;
+  public void setId(Integer id) {
+    this.id = id;
   }
 
-  public void setEnvPath(String envPath) {
-    this.envPath = envPath;
+  @Override
+  public int hashCode() {
+    int hash = 0;
+    hash += (id != null ? id.hashCode() : 0);
+    return hash;
   }
 
+  @Override
+  public boolean equals(Object object) {
+    // TODO: Warning - this method won't work in the case the id fields are not set
+    if (!(object instanceof CondaEnvironment)) {
+      return false;
+    }
+    CondaEnvironment other = (CondaEnvironment) object;
+    if ((this.id == null && other.id != null) || (this.id != null && !this.id.
+            equals(other.id))) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "io.hops.hopsworks.common.dao.python.CondaEnvironment[ id=" + id + " ]";
+  }
+
+  public String getTfVersion() {
+    return tfVersion;
+  }
+
+  public void setTfVersion(String tfVersion) {
+    this.tfVersion = tfVersion;
+  }
+
+  public String getPythonVersion() {
+    return pythonVersion;
+  }
+
+  public void setPythonVersion(String pythonVersion) {
+    this.pythonVersion = pythonVersion;
+  }
 }

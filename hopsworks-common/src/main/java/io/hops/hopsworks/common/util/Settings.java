@@ -1056,6 +1056,13 @@ public class Settings implements Serializable {
     return ANACONDA_DEFAULT_REPO;
   }
 
+  private String ANACONDA_PYTHON_VERSION = "3.6";
+
+  public synchronized String getCondaPythonVersion() {
+    checkCache();
+    return ANACONDA_PYTHON_VERSION;
+  }
+
   private String HIVE_WAREHOUSE = "/apps/hive/warehouse";
 
   public synchronized String getHiveWarehouse() {
@@ -1799,7 +1806,7 @@ public class Settings implements Serializable {
     return DOWNLOAD_ALLOWED;
   }
 
-//  private String CONDA_CHANNEL_URL = "https://repo.continuum.io/pkgs/free/linux-64/";
+  //private String CONDA_CHANNEL_URL = "https://repo.continuum.io/pkgs/free/linux-64/";
   private String CONDA_CHANNEL_URL = "default";
 
   public synchronized String getCondaChannelUrl() {

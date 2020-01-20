@@ -28,6 +28,7 @@ import io.hops.hopsworks.common.hdfs.inode.InodeController;
 import io.hops.hopsworks.common.dao.project.Project;
 import io.hops.hopsworks.common.dao.user.Users;
 import io.hops.hopsworks.common.python.environment.EnvironmentController;
+import io.hops.hopsworks.common.util.ProjectUtils;
 import io.hops.hopsworks.common.util.Settings;
 import io.hops.hopsworks.exceptions.DatasetException;
 import io.hops.hopsworks.exceptions.ElasticException;
@@ -82,6 +83,8 @@ public class EnvironmentResource {
   private EnvironmentBuilder environmentBuilder;
   @EJB
   private Settings settings;
+  @EJB
+  private ProjectUtils projectUtils;
   
   private Project project;
   
@@ -95,7 +98,7 @@ public class EnvironmentResource {
   }
   
   private ResourceRequest getResourceRequest(EnvironmentExpansionBeanParam expansions) throws PythonException {
-    if (!project.getConda()) {
+    if (!projectUtils.isCondaEnabled(project)) {
       throw new PythonException(RESTCodes.PythonErrorCode.ANACONDA_ENVIRONMENT_NOT_FOUND, Level.FINE);
     }
     ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.ENVIRONMENTS);
@@ -131,7 +134,7 @@ public class EnvironmentResource {
   @JWTRequired(acceptedTokens={Audience.API}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
   public Response get(@PathParam("version") String version, @BeanParam EnvironmentExpansionBeanParam expansions,
     @Context UriInfo uriInfo, @Context SecurityContext sc) throws PythonException {
-    if (!version.equals(this.project.getPythonVersion())) {
+    if (!version.equals(this.project.getCondaEnvironment().getPythonVersion())) {
       throw new PythonException(RESTCodes.PythonErrorCode.ANACONDA_ENVIRONMENT_NOT_FOUND, Level.FINE);
     } 
     EnvironmentDTO dto = buildEnvDTO(uriInfo, expansions, version);
@@ -212,14 +215,14 @@ public class EnvironmentResource {
   @Path("{version}/libraries")
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER, AllowedProjectRoles.DATA_SCIENTIST})
   public LibraryResource libraries(@PathParam("version") String version) {
-    return this.libraryResource.setProjectAndVersion(project, version);
+    return this.libraryResource.setProjectAndVersion(project);
   }
   
   @ApiOperation(value = "Python opStatus sub-resource", tags = {"EnvironmentCommandsResource"})
   @Path("{version}/commands")
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER, AllowedProjectRoles.DATA_SCIENTIST})
   public EnvironmentCommandsResource opStatus(@PathParam("version") String version) {
-    return this.environmentCommandsResource.setProject(project, version);
+    return this.environmentCommandsResource.setProject(project);
   }
   
 }

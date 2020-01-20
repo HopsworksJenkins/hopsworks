@@ -91,11 +91,9 @@ public class LibraryResource {
   private static final Pattern CHANNEL_PATTERN = Pattern.compile("[a-zA-Z0-9_\\-:/~?&\\.]+");
 
   private Project project;
-  private String pythonVersion;
   
-  public LibraryResource setProjectAndVersion(Project project, String pythonVersion) {
+  public LibraryResource setProjectAndVersion(Project project) {
     this.project = project;
-    this.pythonVersion = pythonVersion;
     return this;
   }
   
@@ -111,7 +109,7 @@ public class LibraryResource {
   public Response get(@BeanParam Pagination pagination,
       @BeanParam LibrariesBeanParam librariesBeanParam,
       @Context UriInfo uriInfo, @Context SecurityContext sc) throws PythonException {
-    environmentController.checkCondaEnabled(project, pythonVersion);
+    environmentController.checkCondaEnabled(project);
     ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.LIBRARIES);
     resourceRequest.setOffset(pagination.getOffset());
     resourceRequest.setLimit(pagination.getLimit());
@@ -133,7 +131,7 @@ public class LibraryResource {
   public Response getByName(@PathParam("library") String library, @BeanParam LibraryExpansionBeanParam expansions,
     @Context UriInfo uriInfo, @Context SecurityContext sc) throws PythonException {
     validatePattern(library);
-    environmentController.checkCondaEnabled(project, pythonVersion);
+    environmentController.checkCondaEnabled(project);
     PythonDep dep = libraryController.getPythonDep(library, project);
     ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.LIBRARIES);
     if (expansions != null) {
@@ -154,7 +152,7 @@ public class LibraryResource {
     throws ServiceException, GenericException, ProjectException, PythonException, ElasticException {
     validatePattern(library);
     Users user = jwtHelper.getUserPrincipal(sc);
-    environmentController.checkCondaEnabled(project, pythonVersion);
+    environmentController.checkCondaEnabled(project);
     if (settings.getPreinstalledPythonLibraryNames().contains(library)) {
       throw new ServiceException(RESTCodes.ServiceErrorCode.ANACONDA_DEP_REMOVE_FORBIDDEN, Level.INFO,
           "library: " + library);
@@ -192,7 +190,7 @@ public class LibraryResource {
     validatePattern(library);
     validatePattern(version);
 
-    environmentController.checkCondaEnabled(project, pythonVersion);
+    environmentController.checkCondaEnabled(project);
     if (packageManager == null) {
       throw new PythonException(RESTCodes.PythonErrorCode.INSTALL_TYPE_NOT_SUPPORTED, Level.FINE);
     }
@@ -240,7 +238,7 @@ public class LibraryResource {
                          @QueryParam("channel") String channel, @Context UriInfo uriInfo, @Context SecurityContext sc)
     throws ServiceException, PythonException {
     validatePattern(query);
-    environmentController.checkCondaEnabled(project, pythonVersion);
+    environmentController.checkCondaEnabled(project);
     LibrarySearchDTO librarySearchDTO;
     LibraryDTO.PackageManager packageManager = LibraryDTO.PackageManager.fromString(search);
     switch (packageManager) {
@@ -261,7 +259,7 @@ public class LibraryResource {
   @Path("{library}/commands")
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER, AllowedProjectRoles.DATA_SCIENTIST})
   public LibraryCommandsResource libraryCommandsResource() {
-    return this.libraryCommandsResource.setProject(project, pythonVersion);
+    return this.libraryCommandsResource.setProject(project);
   }
 
   private void validatePattern(String element) throws IllegalArgumentException {
