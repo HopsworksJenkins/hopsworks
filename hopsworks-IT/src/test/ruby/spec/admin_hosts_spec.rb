@@ -137,6 +137,14 @@ describe "On #{ENV['OS']}" do
         expect(json_body[:count]).to be > 0
       end
 
+      it "gets service metadata by name" do
+        get_host_services(@hostname)
+        name = json_body[:items].first[name]
+        get_host_service_by_name(@hostname, name)
+        expect_status(200)
+        expect(json_body[:name]).to eq(name)
+      end
+
     end
 
     context 'Cluster nodes sorts and filters with admin authentication' do

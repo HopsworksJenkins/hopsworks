@@ -59,7 +59,7 @@ module HostsHelper
     get "#{ENV['HOPSWORKS_API']}/hosts/" + hostname + "/services" + more
   end
 
-  def get_host_services(hostname, service)
+  def get_host_service_by_name(hostname, service)
     get "#{ENV['HOPSWORKS_API']}/hosts/" + hostname + "/services/" + service
   end
 
