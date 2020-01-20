@@ -132,15 +132,15 @@ describe "On #{ENV['OS']}" do
       end
 
       it "gets list of services of a hostname" do
-        get_host_services(@hostname)
+        hosts_get_host_services(@hostname)
         expect_status(200)
         expect(json_body[:count]).to be > 0
       end
 
       it "gets service metadata by name" do
-        get_host_services(@hostname)
+        hosts_get_host_services(@hostname)
         name = json_body[:items].first[name]
-        get_host_service_by_name(@hostname, name)
+        hosts_get_host_service_by_name(@hostname, name)
         expect_status(200)
         expect(json_body[:name]).to eq(name)
       end

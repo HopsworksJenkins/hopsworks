@@ -55,15 +55,15 @@ module HostsHelper
     delete "#{ENV['HOPSWORKS_API']}/hosts/" + hostname
   end
 
-  def get_host_services(hostname, more = "")
+  def hosts_get_host_services(hostname, more = "")
     get "#{ENV['HOPSWORKS_API']}/hosts/" + hostname + "/services" + more
   end
 
-  def get_host_service_by_name(hostname, service)
+  def hosts_get_host_service_by_name(hostname, service)
     get "#{ENV['HOPSWORKS_API']}/hosts/" + hostname + "/services/" + service
   end
 
-  def update_host_service(hostname, service, action)
+  def hosts_update_host_service(hostname, service, action)
     action_json = {
       "action": action
     }
