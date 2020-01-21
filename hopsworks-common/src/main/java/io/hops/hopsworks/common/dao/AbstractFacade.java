@@ -120,7 +120,7 @@ public abstract class AbstractFacade<T> {
   }
   
   public String OrderBy(SortBy sortBy) {
-    return sortBy.getSql() + sortBy.getParam().getSql();
+    return sortBy.getSql() + " " +  sortBy.getParam().getSql();
   }
   
   public String buildQuery(String query, Set<? extends AbstractFacade.FilterBy> filters,

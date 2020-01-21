@@ -202,10 +202,10 @@ public class HostServicesFacade extends AbstractFacade<HostServices> {
   
   public enum Sorts {
     ID("ID", "h.id", "ASC"),
-    HOST_ID("HOST_ID", "h.host_id", "ASC"),
+    HOST_ID("HOST_ID", "h.host.id", "ASC"),
     PID("PID", "h.pid", "ASC"),
     NAME("NAME", "LOWER(h.name)", "ASC"),
-    GROUP_NAME("GROUP_NAME", "LOWER(h.group_name)", "ASC"),
+    GROUP_NAME("GROUP_NAME", "LOWER(h.group)", "ASC"),
     STATUS("STATUS", "h.status", "ASC"),
     UPTIME("UPTIME", "h.uptime", "ASC"),
     START_TIME("START_TIME", "h.startTime", "ASC"),
