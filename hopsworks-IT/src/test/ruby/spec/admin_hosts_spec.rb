@@ -146,9 +146,35 @@ describe "On #{ENV['OS']}" do
       end
 
       it "stops a service" do
+        hosts_update_host_service(@hostname, "sparkhistoryserver", "SERVICE_START")
+        hosts_get_host_service_by_name(@hostname, "sparkhistoryserver")
+        expect_status(200)
+        expect(json_body[:status]).to eq("Started")
+        hosts_update_host_service(@hostname, "sparkhistoryserver", "SERVICE_STOP")
+        expect_status(200)
+        hosts_get_host_service_by_name(@hostname, "sparkhistoryserver")
+        expect_status(200)
+        expect(json_body[:status]).to eq("Stopped")
       end
 
-      it "stops and starts a service" do
+      it "starts a service" do
+        hosts_update_host_service(@hostname, "sparkhistoryserver", "SERVICE_STOP")
+        hosts_get_host_service_by_name(@hostname, "sparkhistoryserver")
+        expect_status(200)
+        expect(json_body[:status]).to eq("Stopped")
+        hosts_update_host_service(@hostname, "sparkhistoryserver", "SERVICE_START")
+        expect_status(200)
+        hosts_get_host_service_by_name(@hostname, "sparkhistoryserver")
+        expect_status(200)
+        expect(json_body[:status]).to eq("Started")
+      end
+
+      it "restart a service" do
+        hosts_update_host_service(@hostname, "sparkhistoryserver", "SERVICE_RESTART")
+        expect_status(200)
+        hosts_get_host_service_by_name(@hostname, "sparkhistoryserver")
+        expect_status(200)
+        expect(json_body[:status]).to eq("Started")
       end
 
     end

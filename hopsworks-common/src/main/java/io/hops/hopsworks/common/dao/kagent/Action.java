@@ -55,13 +55,13 @@ public enum Action {
   @XmlEnumValue("STOP")
   STOP("stopRole"),
   
-  @XmlEnumValue("START_SERVICE")
+  @XmlEnumValue("SERVICE_START")
   START_SERVICE("startService"),
   
-  @XmlEnumValue("RESTART_SERVICE")
+  @XmlEnumValue("SERVICE_RESTART")
   RESTART_SERVICE("restartService"),
   
-  @XmlEnumValue("STOP_SERVICE")
+  @XmlEnumValue("SERVICE_STOP")
   STOP_SERVICE("stopService");
 
   private final String value;
