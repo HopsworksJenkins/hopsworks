@@ -109,42 +109,43 @@ describe "On #{ENV['OS']}" do
       end
 
       it "sorts by name asc" do
-        services = find_all_host_services().map(&:name).sort
+        services = find_all_host_services().map(&:name).sort.reject { |s| s.match(/-/) || s.match(/_/)}
         get_all_host_services("?sort_by=name:asc")
-        res = json_body[:items].map { |i| i[:name] }
+        res = json_body[:items].map { |i| i[:name] }.reject { |s| s.match(/-/) || s.match(/_/)}
         expect(res).to eq(services)
       end
 
       it "sorts by name desc" do
-        services = find_all_host_services().map(&:name).sort.reverse
+        services = find_all_host_services().map(&:name).sort.reverse.reject { |s| s.match(/-/) || s.match(/_/)}
         get_all_host_services("?sort_by=name:desc")
-        res = json_body[:items].map { |i| i[:name] }
+        res = json_body[:items].map { |i| i[:name] }.reject { |s| s.match(/-/) || s.match(/_/)}
         expect(res).to eq(services)
       end
 
       it "sorts by group_name asc" do
-        services = find_all_host_services().map(&:group_name).sort
+        services = find_all_host_services().map(&:group_name).map(&:downcase).sort
         get_all_host_services("?sort_by=group_name:asc")
-        res = json_body[:items].map { |i| i[:group] }
+        res = json_body[:items].map { |i| i[:group] }.map(&:downcase)
         expect(res).to eq(services)
       end
 
       it "sorts by group_name desc" do
-        services = find_all_host_services().map(&:group_name).sort.reverse
+        services = find_all_host_services().map(&:group_name).map(&:downcase).sort.reverse
         get_all_host_services("?sort_by=group_name:desc")
-        res = json_body[:items].map { |i| i[:group] }
+        res = json_body[:items].map { |i| i[:group] }.map(&:downcase)
         expect(res).to eq(services)
       end
 
       it "sorts by status asc" do
-        services = find_all_host_services().map(&:status).sort
+        services = find_all_host_services().map(&:status).sort.map{ |i| service_status(i)}
         get_all_host_services("?sort_by=status:asc")
         res = json_body[:items].map { |i| i[:status] }
         expect(res).to eq(services)
       end
 
+
       it "sorts by status desc" do
-        services = find_all_host_services().map(&:status).sort.reverse
+        services = find_all_host_services().map(&:status).sort.reverse.map{ |i| service_status(i)}
         get_all_host_services("?sort_by=status:desc")
         res = json_body[:items].map { |i| i[:status] }
         expect(res).to eq(services)
@@ -165,28 +166,28 @@ describe "On #{ENV['OS']}" do
       end
 
       it "sorts by start_time asc" do
-        services = find_all_host_services().map(&:start_time).sort
+        services = find_all_host_services().map(&:startTime).sort
         get_all_host_services("?sort_by=start_time:asc")
         res = json_body[:items].map { |i| i[:startTime] }
         expect(res).to eq(services)
       end
 
       it "sorts by start_time desc" do
-        services = find_all_host_services().map(&:start_time).sort.reverse
+        services = find_all_host_services().map(&:startTime).sort.reverse
         get_all_host_services("?sort_by=start_time:desc")
         res = json_body[:items].map { |i| i[:startTime] }
         expect(res).to eq(services)
       end
 
       it "sorts by stop_time asc" do
-        services = find_all_host_services().map(&:stop_time).sort
+        services = find_all_host_services().map(&:stopTime).sort
         get_all_host_services("?sort_by=stop_time:asc")
         res = json_body[:items].map { |i| i[:stopTime] }
         expect(res).to eq(services)
       end
 
       it "sorts by stop_time desc" do
-        services = find_all_host_services().map(&:stop_time).sort.reverse
+        services = find_all_host_services().map(&:stopTime).sort.reverse
         get_all_host_services("?sort_by=stop_time:desc")
         res = json_body[:items].map { |i| i[:stopTime] }
         expect(res).to eq(services)
@@ -194,3 +195,19 @@ describe "On #{ENV['OS']}" do
     end
   end
 end
+
+def service_status(status)
+  case status
+  when 0
+    "Started"
+  when 1
+    "Stopped"
+  when 2
+    "Failed"
+  when 3
+    "TimedOut"
+  when 4
+    "None"
+  end
+end
+
