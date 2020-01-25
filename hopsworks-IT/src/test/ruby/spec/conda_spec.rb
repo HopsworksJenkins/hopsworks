@@ -381,7 +381,7 @@ describe "On #{ENV['OS']}" do
               config.base_url = "https://#{ENV['WEB_HOST']}:#{ENV['WEB_PORT']}"
             end
 
-            expect(response.body).to  eq(nil)
+            expect(response.body).to eq("")
 
             if not conda_exists
               skip "Anaconda is not installed in the machine or test is run locally"
@@ -479,9 +479,9 @@ describe "On #{ENV['OS']}" do
           with_admin_session
           if num_hosts > 1
             # In case we have multi vms disable the one on which Hopsworks is not running
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks1.logicalclocks.com", condaEnabled: "false"}
+            admin_create_update_cluster_node("hopsworks1.logicalclocks.com", {condaEnabled: "false"})
           else
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks0.logicalclocks.com", condaEnabled: "false"}
+            admin_create_update_cluster_node("hopsworks0.logicalclocks.com", {condaEnabled: "false"})
           end
           expect_status(204)
         end
@@ -527,9 +527,9 @@ describe "On #{ENV['OS']}" do
           with_admin_session
           if num_hosts > 1
             # In case we have multi vms disable the one on which Hopsworks is not running
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks1.logicalclocks.com", condaEnabled: "true"}
+            admin_create_update_cluster_node("hopsworks1.logicalclocks.com", {condaEnabled: "true"})
           else
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks0.logicalclocks.com", condaEnabled: "true"}
+            admin_create_update_cluster_node("hopsworks0.logicalclocks.com", {condaEnabled: "true"})
           end
           expect_status(204)
         end
@@ -556,9 +556,9 @@ describe "On #{ENV['OS']}" do
           with_admin_session
           if num_hosts > 1
             # In case we have multi vms disable the one on which Hopsworks is not running
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks1.logicalclocks.com", condaEnabled: "false"}
+            admin_create_update_cluster_node("hopsworks1.logicalclocks.com", {condaEnabled: "false"})
           else
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks0.logicalclocks.com", condaEnabled: "false"}
+            admin_create_update_cluster_node("hopsworks0.logicalclocks.com", {condaEnabled: "false"})
           end
           expect_status(204)
         end
@@ -592,9 +592,9 @@ describe "On #{ENV['OS']}" do
           with_admin_session
           if num_hosts > 1
             # In case we have multi vms disable the one on which Hopsworks is not running
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks1.logicalclocks.com", condaEnabled: "true"}
+            admin_create_update_cluster_node("hopsworks1.logicalclocks.com", {condaEnabled: "true"})
           else
-            put "#{ENV['HOPSWORKS_API']}/admin/hosts", {hostname: "hopsworks0.logicalclocks.com", condaEnabled: "true"}
+            admin_create_update_cluster_node("hopsworks0.logicalclocks.com", {condaEnabled: "true"})
           end
           expect_status(204)
         end
