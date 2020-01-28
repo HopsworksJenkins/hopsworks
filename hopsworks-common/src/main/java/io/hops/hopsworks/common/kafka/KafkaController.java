@@ -500,11 +500,13 @@ public class KafkaController {
         list.add(st);
       }
     }
-      
-    
+  
+  
     for (SharedTopics st : list) {
       sharedTopicsFacade.remove(st);
-      Project projectACLs = projectFacade.findById(st.getSharedTopicsPK().getProjectId()).get();
+      Project projectACLs = projectFacade.findById(st.getSharedTopicsPK().getProjectId()).orElseThrow(() ->
+        new ProjectException(RESTCodes.ProjectErrorCode.PROJECT_NOT_FOUND, Level.FINE,
+          "project: " + st.getSharedTopicsPK().getProjectId()));
       topicAclsFacade.removeAclFromTopic(topicName, projectACLs);
     }
   }
