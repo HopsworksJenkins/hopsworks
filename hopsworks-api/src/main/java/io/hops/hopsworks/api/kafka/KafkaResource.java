@@ -235,14 +235,14 @@ public class KafkaResource {
   @ApiOperation(value = "Unshare Kafka topic from shared-with project (specified as destProjectId). Request must be " +
     "issued from the owning project.")
   @DELETE
-  @Path("/topics/{topic}/shared/{destProjectId}")
+  @Path("/topics/{topic}/shared/{destProjectName}")
   @Produces(MediaType.APPLICATION_JSON)
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER})
   @JWTRequired(acceptedTokens={Audience.API}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
   public Response unshareTopicFromProject(@PathParam("topic") String topicName,
-    @PathParam("destProjectId") Integer destProjectId) throws KafkaException, ProjectException {
+    @PathParam("destProjectName") String destProjectName) throws KafkaException, ProjectException {
     
-    kafkaController.unshareTopic(project, topicName, destProjectId);
+    kafkaController.unshareTopic(project, topicName, destProjectName);
     return Response.noContent().build();
   }
   

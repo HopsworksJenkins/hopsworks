@@ -80,7 +80,7 @@ angular.module('hopsWorksApp')
             self.init();
 
             self.selectProject = function () {
-              if (self.selectedProject === undefined || self.selectedProject === "") {
+              if (self.selectedProject === undefined || self.selectedProject === '') {
                 growl.error("Could not select a project", {title: 'Error', ttl: 5000, referenceId: 21});
                 return;
               }
