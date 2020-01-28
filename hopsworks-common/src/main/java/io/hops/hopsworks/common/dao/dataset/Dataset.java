@@ -110,7 +110,7 @@ import java.util.Collection;
   ,
     @NamedQuery(name = "Dataset.findByDstype",
       query = "SELECT d FROM Dataset d WHERE d.dsType = :dstype")})
-public class Dataset implements Serializable {
+public class  Dataset implements Serializable {
 
   private static final long serialVersionUID = 1L;
   @Id

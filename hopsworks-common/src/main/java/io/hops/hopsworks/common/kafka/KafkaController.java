@@ -478,7 +478,7 @@ public class KafkaController {
     //check if ownerProject is the owner of the topic
     if (!projectTopicsFacade.findTopicByNameAndProject(ownerProject, topicName).isPresent()) {
       throw new KafkaException(RESTCodes.KafkaErrorCode.TOPIC_NOT_FOUND, Level.FINE, "Topic " + topicName +
-      " does not belong to project " + ownerProject.getName());
+        " does not belong to project " + ownerProject.getName());
     }
     
     List<SharedTopics> list = sharedTopicsFacade.findSharedTopicsByTopicName(topicName);
@@ -488,19 +488,39 @@ public class KafkaController {
     }
   }
   
-  public void unshareTopic(Project ownerProject, String topicName, Integer destProjectId)
-    throws ProjectException, KafkaException {
+  public void unshareTopic(Project requesterProject, String topicName, Integer destProjectId) throws ProjectException
+    , KafkaException {
+    List<SharedTopics> list = new ArrayList<>();
+    //check if topic exists
+    ProjectTopics topic = projectTopicsFacade.findTopicByName(topicName).orElseThrow(() ->
+      new KafkaException(RESTCodes.KafkaErrorCode.TOPIC_NOT_FOUND, Level.FINE, "Topic:" + topicName));
+    //check if requesterProject is the owner of the topic
+    if (topic.getProject().equals(requesterProject)) {
+      if (destProjectId == null) {
+        list.addAll(sharedTopicsFacade.findSharedTopicsByTopicName(topicName));
+      } else {
+        SharedTopics st =
+          sharedTopicsFacade.findSharedTopicByProjectAndTopic(destProjectId, topicName).orElseThrow(() ->
+            new KafkaException(RESTCodes.KafkaErrorCode.TOPIC_NOT_SHARED, Level.FINE,
+              "topic: " + topicName + ", project: " + destProjectId));
+        list.add(st);
+      }
+    } else {
+      if (destProjectId == null) {
+        SharedTopics st =
+          sharedTopicsFacade.findSharedTopicByProjectAndTopic(requesterProject.getId(), topicName).orElseThrow(() ->
+            new KafkaException(RESTCodes.KafkaErrorCode.TOPIC_NOT_SHARED, Level.FINE,
+              "topic: " + topicName + ", project: " + requesterProject.getId()));
+        list.add(st);
+      }
+    }
+      
     
-    Project destProject = projectFacade.findById(destProjectId).orElseThrow(() ->
-      new ProjectException(RESTCodes.ProjectErrorCode.PROJECT_NOT_FOUND, Level.FINE, "project: " + destProjectId));
-    
-    SharedTopics st = sharedTopicsFacade.findSharedTopicByProjectAndTopic(destProjectId, topicName).orElseThrow(() ->
-      new KafkaException(RESTCodes.KafkaErrorCode.TOPIC_NOT_SHARED, Level.FINE,
-        "topic: " + topicName + ", project: " + destProjectId));
-  
-    sharedTopicsFacade.remove(st);
-    
-    topicAclsFacade.removeAclFromTopic(topicName, destProject);
+    for (SharedTopics st : list) {
+      sharedTopicsFacade.remove(st);
+      Project projectACLs = projectFacade.findById(st.getSharedTopicsPK().getProjectId()).get();
+      topicAclsFacade.removeAclFromTopic(topicName, projectACLs);
+    }
   }
   
   public String getKafkaCertPaths(Project project) {
