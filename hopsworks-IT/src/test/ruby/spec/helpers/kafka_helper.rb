@@ -103,7 +103,7 @@ module KafkaHelper
   end
 
   def share_topic(owner_project, topic_name, dest_project)
-	put "#{ENV['HOPSWORKS_API']}/project/#{owner_project[:id]}/kafka/topics/#{topic_name}/shared/#{dest_project[:id]}"
+	put "#{ENV['HOPSWORKS_API']}/project/#{owner_project[:id]}/kafka/topics/#{topic_name}/shared/#{dest_project[:name]}"
   end
 
   def get_shared_topics(project_id)

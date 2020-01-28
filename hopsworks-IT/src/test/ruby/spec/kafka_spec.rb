@@ -50,11 +50,11 @@ describe "On #{ENV['OS']}" do
           # create the target project
           target_project = create_project
           topic = get_topic
-	  share_topic(org_project, topic, target_project)
+	  			share_topic(org_project, topic, target_project)
           expect_status(201)
 
           # Check that the topic has been shared correctly
-	  get_shared_topics(target_project.id) 
+	  			get_shared_topics(target_project.id)
           expect(json_body[:items].count).to eq 1
         end
 
