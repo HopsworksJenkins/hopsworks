@@ -49,12 +49,14 @@ module SessionHelper
     if response.code != 200
       reset_and_create_session
     end
+    pp "session:#{@user[:email]}" if defined?(@debugOpt) && @debugOpt == true
   end
   
   def with_admin_session
-    @user = create_user_without_role({})
-    create_admin_role(@user)
-    create_session(@user.email, "Pass123")
+    user = create_user_without_role({})
+    create_admin_role(user)
+    create_session(user.email, "Pass123")
+    @user = user
   end
 
   def with_agent_session
