@@ -165,7 +165,7 @@ public class KafkaController {
   
     //By default, all members of the project are granted full permissions
     //on the topic
-    addFullPermissionAclsToTopic(project.getId(), topicDto.getName(), project.getId());
+    addFullPermissionAclsToTopic(project.getName(), topicDto.getName(), project.getId());
   }
   
   public void removeTopicFromProject(Project project, String topicName) throws KafkaException {
@@ -309,8 +309,6 @@ public class KafkaController {
     }
   
     sharedTopicsFacade.shareTopic(project, topicName, destProjectId);
-    //By default, all members of the project are granted full permissions on the topic
-    addFullPermissionAclsToTopic(destProjectId, topicName, project.getId());
     
     Optional<SharedTopics> optionalSt =
       sharedTopicsFacade.findSharedTopicByTopicAndProjectIds(topicName, project.getId(), destProjectId);
@@ -324,6 +322,23 @@ public class KafkaController {
     return dto;
   }
   
+  public void acceptSharedTopic(String topicName, String destProjectName)
+    throws KafkaException, ProjectException, UserException {
+    
+    ProjectTopics pt = projectTopicsFacade.findTopicByName(topicName).orElseThrow(() ->
+      new KafkaException(RESTCodes.KafkaErrorCode.TOPIC_NOT_FOUND, Level.FINE, "topicName: " + topicName));
+  
+    Project p = projectFacade.findByName(destProjectName);
+    if (p == null) {
+      throw new ProjectException(RESTCodes.ProjectErrorCode.PROJECT_NOT_FOUND, Level.FINE,
+        "Could not find project: " + destProjectName);
+    }
+    
+    addFullPermissionAclsToTopic(destProjectName, topicName, pt.getProject().getId());
+    
+    sharedTopicsFacade.acceptSharedTopic(pt.getProject().getId(), topicName, p.getId());
+  }
+  
   public Optional<TopicAcls> getTopicAclsByDto(String topicName, AclDTO dto) throws UserException{
     Users user = Optional.ofNullable(userFacade.findByEmail(dto.getUserEmail()))
       .orElseThrow(() ->
@@ -334,11 +349,15 @@ public class KafkaController {
     return topicAclsFacade.getTopicAcls(topicName, dto, principalName);
   }
   
-  private void addFullPermissionAclsToTopic(Integer aclProjectId, String topicName, Integer projectId)
+  private void addFullPermissionAclsToTopic(String aclProjectName, String topicName, Integer projectId)
     throws ProjectException, KafkaException, UserException {
-    Project p = Optional.ofNullable(projectFacade.find(aclProjectId)).orElseThrow(() ->
-      new ProjectException(RESTCodes.ProjectErrorCode.PROJECT_NOT_FOUND, Level.FINE,
-      "Could not find project: " + aclProjectId));
+    
+    Project p = projectFacade.findByName(aclProjectName);
+    
+    if (p == null) {
+      throw new ProjectException(RESTCodes.ProjectErrorCode.PROJECT_NOT_FOUND, Level.FINE,
+        "Could not find project: " + aclProjectName);
+    }
     
     List<AclDTO> acls = p.getProjectTeamCollection()
       .stream()
@@ -604,7 +623,8 @@ public class KafkaController {
           topic.getSubjects().getSubject(),
           topic.getSubjects().getVersion(),
           topic.getSubjects().getSchema().getSchema(),
-          true))
+          true,
+          pt.getAccepted()))
         .ifPresent(topics::add);
     }
     return topics;
