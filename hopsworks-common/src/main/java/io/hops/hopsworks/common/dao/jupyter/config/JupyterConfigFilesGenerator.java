@@ -199,7 +199,7 @@ public class JupyterConfigFilesGenerator {
   }
   
   public void createJupyterNotebookConfig(Writer out, Project project, String nameNodeEndpoint, int port,
-      JupyterSettings js, String hdfsUser, String pythonKernelName, String certsDir, String allowOrigin)
+      JupyterSettings js, String hdfsUser, String certsDir, String allowOrigin)
         throws IOException, ServiceException {
     String[] nn = nameNodeEndpoint.split(":");
     String nameNodeIp = nn[0];
@@ -325,8 +325,7 @@ public class JupyterConfigFilesGenerator {
       }
   
       try (Writer out = new FileWriter(jupyter_config_file, false)) {
-        createJupyterNotebookConfig(out, project, nameNodeEndpoint, port, js, hdfsUser,
-            pythonKernelName, certsDir, allowOrigin);
+        createJupyterNotebookConfig(out, project, nameNodeEndpoint, port, js, hdfsUser, certsDir, allowOrigin);
       }
     }
     
