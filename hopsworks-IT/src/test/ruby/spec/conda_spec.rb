@@ -68,7 +68,7 @@ describe "On #{ENV['OS']}" do
         context 'conda not enabled' do
           it 'should fail to list envs' do
             @project = get_project_by_name(@project[:projectname])
-            if !@project[:python_version].nil? and !@project[:python_version].empty?
+            if !@project[:conda_environment_id].nil?
               delete_env(@project[:id], @project[:python_version])
             end
             list_envs(@project[:id])
@@ -77,7 +77,7 @@ describe "On #{ENV['OS']}" do
 
           it 'should fail to get env commands' do
             @project = get_project_by_name(@project[:projectname])
-            if !@project[:python_version].nil? and !@project[:python_version].empty?
+            if !@project[:conda_environment_id].nil?
               delete_env(@project[:id], @project[:python_version])
             end
             get_env_commands(@project[:id], python_version)
@@ -86,7 +86,7 @@ describe "On #{ENV['OS']}" do
 
           it 'should fail to list libraries' do
             @project = get_project_by_name(@project[:projectname])
-            if !@project[:python_version].nil? and !@project[:python_version].empty?
+            if !@project[:conda_environment_id].nil?
               delete_env(@project[:id], @project[:python_version])
             end
             list_libraries(@project[:id], python_version)
@@ -95,7 +95,7 @@ describe "On #{ENV['OS']}" do
 
           it 'should fail to list library commands' do
             @project = get_project_by_name(@project[:projectname])
-            if !@project[:python_version].nil? and !@project[:python_version].empty?
+            if !@project[:conda_environment_id].nil?
               delete_env(@project[:id], @project[:python_version])
             end
             get_library_commands(@project[:id], python_version, 'numpy')
@@ -104,7 +104,7 @@ describe "On #{ENV['OS']}" do
 
           it 'should fail to install library' do
             @project = get_project_by_name(@project[:projectname])
-            if !@project[:python_version].nil? and !@project[:python_version].empty?
+            if !@project[:conda_environment_id].nil?
               delete_env(@project[:id], @project[:python_version])
             end
             install_library(@project[:id], python_version, 'requests', 'conda', '2.20.0', 'CPU', conda_channel)
@@ -113,7 +113,7 @@ describe "On #{ENV['OS']}" do
 
           it 'should fail to search for a library' do
             @project = get_project_by_name(@project[:projectname])
-            if !@project[:python_version].nil? and !@project[:python_version].empty?
+            if !@project[:conda_environment_id].nil?
               delete_env(@project[:id], @project[:python_version])
             end
             search_library(@project[:id], python_version, 'conda', 'dropbox', conda_channel)
