@@ -1063,6 +1063,13 @@ public class Settings implements Serializable {
     return ANACONDA_PYTHON_VERSION;
   }
 
+  private String ANACONDA_TENSORFLOW_VERSION = "1.14.0";
+
+  public synchronized String getCondaTensorFlowVersion() {
+    checkCache();
+    return ANACONDA_TENSORFLOW_VERSION;
+  }
+
   private String HIVE_WAREHOUSE = "/apps/hive/warehouse";
 
   public synchronized String getHiveWarehouse() {
