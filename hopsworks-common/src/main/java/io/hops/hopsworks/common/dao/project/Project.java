@@ -106,8 +106,6 @@ import javax.persistence.ManyToMany;
   @NamedQuery(name = "Project.findByInodeId",
       query = "SELECT t FROM Project t WHERE t.inode.inodePK.parentId = :parentid "
       + "AND t.inode.inodePK.name = :name"),
-  @NamedQuery(name = "Project.findAllCondaEnabled",
-      query = "SELECT t FROM Project t where t.conda = true"),
   @NamedQuery(name = "Project.findByNameCaseInsensitive",
       query = "SELECT t FROM Project t where LOWER(t.name) = LOWER(:name)")})
 public class Project implements Serializable {
