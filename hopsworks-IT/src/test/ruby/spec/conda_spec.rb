@@ -440,7 +440,7 @@ describe "On #{ENV['OS']}" do
             expect_status(201)
 
             # Install a library to create the new environment
-            install_library(project2[:id], project2[:python_version], 'paramiko', 'conda', '2.4.2', 'CPU', conda_channel)
+            install_library(project2[:id], python_version, 'paramiko', 'conda', '2.4.2', 'CPU', conda_channel)
             expect_status(201)
             wait_for do
               CondaCommands.find_by(proj: project2[:projectname]).nil?
