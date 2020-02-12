@@ -100,8 +100,9 @@ public class EnvironmentController {
   
   private static final DateTimeFormatter ELASTIC_INDEX_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
   
-  public void checkCondaEnabled(Project project) throws PythonException {
-    if (!projectUtils.isCondaEnabled(project)) {
+  public void checkCondaEnabled(Project project, String pythonVersion) throws PythonException {
+    if (!projectUtils.isCondaEnabled(project) ||
+        !pythonVersion.equals(project.getCondaEnvironment().getPythonVersion())) {
       throw new PythonException(RESTCodes.PythonErrorCode.ANACONDA_ENVIRONMENT_NOT_FOUND, Level.FINE);
     }
   }
@@ -265,6 +266,18 @@ public class EnvironmentController {
     }
     return foundVersion;
   }
+
+  public String findTensorFlowVersion(String ymlFile) {
+    String foundVersion = null;
+    Pattern urlPattern = Pattern.compile("(- tensorflow=(\\d+.\\d+))");
+    Matcher urlMatcher = urlPattern.matcher(ymlFile);
+    if (urlMatcher.find()) {
+      foundVersion = urlMatcher.group(2);
+    } else {
+      return null;
+    }
+    return foundVersion;
+  }
   
   public String createEnvironmentFromYml(String allYmlPath, String cpuYmlPath, String gpuYmlPath,
     boolean installJupyter, Users user, Project project) throws PythonException,
@@ -282,9 +295,10 @@ public class EnvironmentController {
       }
       String allYml = getYmlFromPath(new Path(allYmlPath), username);
       String pythonVersion = findPythonVersion(allYml);
+      String tensorflowVersion = findTensorFlowVersion(allYml);
       version = pythonVersion;
       createKibanaIndex(project, user);
-      createProjectInDb(project, user, version, "", LibraryFacade.MachineType.ALL, allYml, installJupyter);
+      createProjectInDb(project, user, version, tensorflowVersion, LibraryFacade.MachineType.ALL, allYml, installJupyter);
       project.setCondaEnv(true);
       projectFacade.update(project);
       return version;
@@ -308,6 +322,7 @@ public class EnvironmentController {
     
       String pythonVersionCPUYml = findPythonVersion(cpuYml);
       String pythonVersionGPUYml = findPythonVersion(gpuYml);
+      String tensorflowVersion = findTensorFlowVersion(gpuYml);
       if (!pythonVersionCPUYml.equals(pythonVersionGPUYml)) {
         throw new ServiceException(RESTCodes.ServiceErrorCode.INVALID_YML, Level.FINE,
             "python version mismatch between .yml files.");
@@ -315,11 +330,12 @@ public class EnvironmentController {
       version = pythonVersionCPUYml;
 
       createKibanaIndex(project, user);
-      createProjectInDb(project, user, version, "", LibraryFacade.MachineType.CPU, cpuYml, installJupyter);
-      createProjectInDb(project, user, version, "", LibraryFacade.MachineType.GPU, gpuYml, installJupyter);
+      createProjectInDb(project, user, version, tensorflowVersion, LibraryFacade.MachineType.CPU, cpuYml, installJupyter);
+      createProjectInDb(project, user, version, tensorflowVersion, LibraryFacade.MachineType.GPU, gpuYml, installJupyter);
 
       CondaEnvironment condaEnvironment = new CondaEnvironment();
       condaEnvironment.setPythonVersion(version);
+      condaEnvironment.setTfVersion(tensorflowVersion);
       project.setCondaEnvironment(condaEnvironment);
       projectFacade.update(project);
 

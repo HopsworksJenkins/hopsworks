@@ -215,14 +215,14 @@ public class EnvironmentResource {
   @Path("{version}/libraries")
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER, AllowedProjectRoles.DATA_SCIENTIST})
   public LibraryResource libraries(@PathParam("version") String version) {
-    return this.libraryResource.setProjectAndVersion(project);
+    return this.libraryResource.setProjectAndVersion(project, version);
   }
   
   @ApiOperation(value = "Python opStatus sub-resource", tags = {"EnvironmentCommandsResource"})
   @Path("{version}/commands")
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER, AllowedProjectRoles.DATA_SCIENTIST})
   public EnvironmentCommandsResource opStatus(@PathParam("version") String version) {
-    return this.environmentCommandsResource.setProject(project);
+    return this.environmentCommandsResource.setProjectAndVersion(project, version);
   }
   
 }

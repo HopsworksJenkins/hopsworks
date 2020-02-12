@@ -59,8 +59,11 @@ public class EnvironmentCommandsResource {
   private EnvironmentController environmentController;
   
   private Project project;
-  public EnvironmentCommandsResource setProject(Project project) {
+  private String pythonVersion;
+
+  public EnvironmentCommandsResource setProjectAndVersion(Project project, String pythonVersion) {
     this.project = project;
+    this.pythonVersion = pythonVersion;
     return this;
   }
   public Project getProject() {
@@ -74,7 +77,7 @@ public class EnvironmentCommandsResource {
   @JWTRequired(acceptedTokens = {Audience.API}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
   public Response get(@BeanParam Pagination pagination, @BeanParam CommandBeanParam environmentsCommandBeanParam,
     @Context UriInfo uriInfo, @Context SecurityContext sc) throws PythonException {
-    environmentController.checkCondaEnabled(project);
+    environmentController.checkCondaEnabled(project, pythonVersion);
     ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.COMMANDS);
     resourceRequest.setOffset(pagination.getOffset());
     resourceRequest.setLimit(pagination.getLimit());
@@ -92,7 +95,7 @@ public class EnvironmentCommandsResource {
   @JWTRequired(acceptedTokens = {Audience.API}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
   public Response getByName(@PathParam("commandId") Integer commandId, @Context UriInfo uriInfo,
     @Context SecurityContext sc) throws PythonException {
-    environmentController.checkCondaEnabled(project);
+    environmentController.checkCondaEnabled(project, pythonVersion);
     ResourceRequest resourceRequest = new ResourceRequest(ResourceRequest.Name.COMMANDS);
     CommandDTO dto = commandBuilder.build(uriInfo, resourceRequest, project, commandId);
     return Response.ok().entity(dto).build();
@@ -103,7 +106,7 @@ public class EnvironmentCommandsResource {
   @AllowedProjectRoles({AllowedProjectRoles.DATA_OWNER, AllowedProjectRoles.DATA_SCIENTIST})
   @JWTRequired(acceptedTokens = {Audience.API}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
   public Response delete(@Context SecurityContext sc) throws PythonException {
-    environmentController.checkCondaEnabled(project);
+    environmentController.checkCondaEnabled(project, pythonVersion);
     commandsController.deleteCommands(project);
     return Response.noContent().build();
   }
