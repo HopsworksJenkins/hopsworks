@@ -450,7 +450,8 @@ describe "On #{ENV['OS']}" do
             # Disable Anaconda for project2 directly in the database
             # so it does not send a command to kagent
             tmp_proj = Project.find_by(id: project2[:id])
-            tmp_proj.conda = 0
+            tmp_proj.conda_env = 0
+            tmp_proj.conda_environment_id = nil
             tmp_proj.save
 
             wait_for do
