@@ -298,7 +298,8 @@ public class EnvironmentController {
       String tensorflowVersion = findTensorFlowVersion(allYml);
       version = pythonVersion;
       createKibanaIndex(project, user);
-      createProjectInDb(project, user, version, tensorflowVersion, LibraryFacade.MachineType.ALL, allYml, installJupyter);
+      createProjectInDb(project, user, version, tensorflowVersion,
+          LibraryFacade.MachineType.ALL, allYml, installJupyter);
       project.setCondaEnv(true);
       projectFacade.update(project);
       return version;
@@ -330,8 +331,10 @@ public class EnvironmentController {
       version = pythonVersionCPUYml;
 
       createKibanaIndex(project, user);
-      createProjectInDb(project, user, version, tensorflowVersion, LibraryFacade.MachineType.CPU, cpuYml, installJupyter);
-      createProjectInDb(project, user, version, tensorflowVersion, LibraryFacade.MachineType.GPU, gpuYml, installJupyter);
+      createProjectInDb(project, user, version, tensorflowVersion,
+          LibraryFacade.MachineType.CPU, cpuYml, installJupyter);
+      createProjectInDb(project, user, version, tensorflowVersion,
+          LibraryFacade.MachineType.GPU, gpuYml, installJupyter);
 
       CondaEnvironment condaEnvironment = new CondaEnvironment();
       condaEnvironment.setPythonVersion(version);
