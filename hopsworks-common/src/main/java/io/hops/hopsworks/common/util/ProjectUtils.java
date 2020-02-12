@@ -64,17 +64,17 @@ public class ProjectUtils {
   public boolean isCondaEnabled(Project project) {
     return project.getCondaEnv() || project.getCondaEnvironment() != null;
   }
-  
+
   public String getCurrentCondaEnvironment(Project project) {
-    // copy-on-write happened (installation/uninstallation)
-    if(project.getCondaEnv()) {
-      return project.getName();
-    // still using base environment
-    } else if(project.getCondaEnvironment() != null) {
-      return "python36";
-    } else {
-      throw new IllegalArgumentException("Error. Python has not been enabled for this project.");
+    String condaEnv = project.getName();
+    if (project.getCondaEnvironment() != null && !project.getCondaEnv()) {
+      if (project.getCondaEnvironment().getPythonVersion().compareToIgnoreCase("3.6") == 0) {
+        condaEnv = "python36";
+      } else {
+        throw new IllegalArgumentException("Error. Python has not been enabled for this project.");
+      }
     }
+    return condaEnv;
   }
 
   public String getCurrentCondaBaseEnvironment(Project project) {

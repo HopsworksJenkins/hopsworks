@@ -27,7 +27,7 @@ public class CondaEnvironmentFacade {
   @PersistenceContext(unitName = "kthfsPU")
   private EntityManager em;
 
-  public CondaEnvironment findByTfAndPythonVersion(String pythonVersion, String tfVersion, boolean create) {
+  public CondaEnvironment findByTfAndPythonVersion(String pythonVersion, String tfVersion) {
     TypedQuery<CondaEnvironment> query = em.createNamedQuery("CondaEnvironment.findByTfAndPythonVersion",
         CondaEnvironment.class);
     query.setParameter("pythonVersion", pythonVersion);
@@ -36,12 +36,10 @@ public class CondaEnvironmentFacade {
     try {
       condaEnv = query.getSingleResult();
     } catch (NoResultException ex) {
-      if (create) {
-        condaEnv = new CondaEnvironment();
-        condaEnv.setPythonVersion(pythonVersion);
-        condaEnv.setTfVersion(tfVersion);
-        em.flush();
-      }
+      condaEnv = new CondaEnvironment();
+      condaEnv.setPythonVersion(pythonVersion);
+      condaEnv.setTfVersion(tfVersion);
+      em.flush();
     }
     return condaEnv;
   }

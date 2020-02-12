@@ -274,7 +274,7 @@ public class EnvironmentController {
     if (urlMatcher.find()) {
       foundVersion = urlMatcher.group(2);
     } else {
-      return null;
+      return settings.getTensorflowVersion();
     }
     return foundVersion;
   }
@@ -300,6 +300,8 @@ public class EnvironmentController {
       createKibanaIndex(project, user);
       createProjectInDb(project, user, version, tensorflowVersion,
           LibraryFacade.MachineType.ALL, allYml, installJupyter);
+      CondaEnvironment condaEnvironment = condaEnvironmentFacade.findByTfAndPythonVersion(version, tensorflowVersion);
+      project.setCondaEnvironment(condaEnvironment);
       project.setCondaEnv(true);
       projectFacade.update(project);
       return version;
@@ -336,10 +338,9 @@ public class EnvironmentController {
       createProjectInDb(project, user, version, tensorflowVersion,
           LibraryFacade.MachineType.GPU, gpuYml, installJupyter);
 
-      CondaEnvironment condaEnvironment = new CondaEnvironment();
-      condaEnvironment.setPythonVersion(version);
-      condaEnvironment.setTfVersion(tensorflowVersion);
+      CondaEnvironment condaEnvironment = condaEnvironmentFacade.findByTfAndPythonVersion(version, tensorflowVersion);
       project.setCondaEnvironment(condaEnvironment);
+      project.setCondaEnv(true);
       projectFacade.update(project);
 
       return version;
@@ -382,7 +383,7 @@ public class EnvironmentController {
     createProjectInDb(project, user, pythonVersion, tensorflowVersion, LibraryFacade.MachineType.ALL, null, false);
 
     CondaEnvironment condaEnvironment =
-        condaEnvironmentFacade.findByTfAndPythonVersion(pythonVersion, tensorflowVersion, true);
+        condaEnvironmentFacade.findByTfAndPythonVersion(pythonVersion, tensorflowVersion);
     project.setCondaEnvironment(condaEnvironment);
 
     projectFacade.update(project);
