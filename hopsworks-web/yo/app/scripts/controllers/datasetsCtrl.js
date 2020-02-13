@@ -809,7 +809,7 @@ angular.module('hopsWorksApp')
             self.publish = function(dataset) {
               ModalService.confirm('sm', 'Confirm', 'Are you sure you want to make this Data Set Public(Cluster)? This will make its entire content available to all users of Hopsworks and its permissions will be set to Owner only').then(
                 function (success) {
-                  dataSetService.publish(dataset.name).then(
+                  dataSetService.publish(dataset.name, dataset.datasetType).then(
                     function (success) {
                       self.showSuccess(success, 'The DataSet is now Public(Cluster).', 4);
                       getDirContents();
@@ -823,7 +823,7 @@ angular.module('hopsWorksApp')
             self.unpublish = function (dataset) {
               ModalService.confirm('sm', 'Confirm', 'Are you sure you want to make this DataSet Private? Datasets that have already imported are allowed to keep it as shared with project. You can then unshare all to remove their access').then(
                 function (success) {
-                  dataSetService.unpublish(dataset.name).then(
+                  dataSetService.unpublish(dataset.name, dataset.datasetType).then(
                     function (success) {
                       self.showSuccess(success, 'The DataSet is not Public(cluster) anymore.', 4);
                       getDirContents();
@@ -980,7 +980,7 @@ angular.module('hopsWorksApp')
               } else {
                 ModalService.confirmShare('sm', 'Accept Shared Dataset?', 'Do you want to accept this dataset and add it to this project?')
                   .then(function (success) {
-                      dataSetService.accept(dataset.attributes.path).then(
+                      dataSetService.accept(dataset.attributes.path, dataset.datasetType).then(
                       function (success) {
                         $location.path($location.path() + '/' + dataset.name + '/');
                       }, function (error) {
@@ -988,7 +988,7 @@ angular.module('hopsWorksApp')
                     });
                   }, function (error) {
                     if (error === 'reject') {
-                        dataSetService.reject(dataset.attributes.path).then(
+                        dataSetService.reject(dataset.attributes.path, dataset.datasetType).then(
                         function (success) {
                           $location.path($location.path() + '/');
                           self.showSuccess(success, '', 4);

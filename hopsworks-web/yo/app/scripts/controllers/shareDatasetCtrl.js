@@ -79,7 +79,7 @@ angular.module('hopsWorksApp')
 
             self.shareDataset = function () {
                 if ($scope.dataSetForm.$valid) {
-                    dataSetService.share(datasetPath, self.targetProject)
+                    dataSetService.share(datasetPath, self.targetProject, dsType)
                         .then(function (success) {
                             $uibModalInstance.close(success);
                         },

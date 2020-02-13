@@ -103,15 +103,18 @@ angular.module('hopsWorksApp')
                   var destinationPath = getQuery(destinationPath, 'destination_path');
                   return $http.post(baseUrl + path + '?action=move' + destinationPath);
                 },
-                share: function (path, targetProject) {
+                share: function (path, targetProject, type) {
                   var targetProject = getQuery(targetProject, 'target_project');
-                  return $http.post(baseUrl + path + '?action=share' + targetProject);
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + path + '?action=share' + targetProject + datasetType);
                 },
-                accept: function (path) {
-                  return $http.post(baseUrl + path + '?action=accept');
+                accept: function (path, type) {
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + path + '?action=accept' + datasetType);
                 },
-                reject: function (path) {
-                  return $http.post(baseUrl + path + '?action=reject');
+                reject: function (path, type) {
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + path + '?action=reject' + datasetType);
                 },
                 zip: function (path) {
                   return $http.post(baseUrl + path + '?action=zip');
@@ -131,9 +134,10 @@ angular.module('hopsWorksApp')
                 deleteCorrupted: function (path) {
                   return $http.delete(baseUrl + path + '?action=corrupted');
                 },
-                unshare: function (path, targetProject) {
+                unshare: function (path, targetProject, type) {
                   var targetProject = getQuery(targetProject, 'target_project');
-                  return $http.delete(baseUrl + path + '?action=unshare' + targetProject);
+                  var datasetType = getQuery(type, 'type');
+                  return $http.delete(baseUrl + path + '?action=unshare' + targetProject + datasetType);
                 },
                 getDownloadToken: function (path, type) {
                   var datasetType = getQuery(type, 'type', true);
@@ -143,18 +147,22 @@ angular.module('hopsWorksApp')
                   var datasetType = getQuery(type, 'type');
                   location.href=getPathname() + baseUrl + 'download/' + path + '?token=' + token + datasetType;
                 },
-                publish: function (path) {
-                  return $http.post(baseUrl + path + '?action=publish');
+                publish: function (path, type) {
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + path + '?action=publish' + datasetType);
                 },
-                unpublish: function (path) {
-                  return $http.post(baseUrl + path + '?action=unpublish');
+                unpublish: function (path, type) {
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + path + '?action=unpublish' + datasetType);
                 },
-                import: function (path, targetProject) {
+                import: function (path, targetProject, type) {
                   var targetProject = getQuery(targetProject, 'target_project');
-                  return $http.post(baseUrl + path + '?action=import' + targetProject);
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + path + '?action=import' + targetProject + datasetType);
                 },
-                unshareAll: function (datasetName) {
-                  return $http.post(baseUrl + datasetName + '?action=unshare_all');
+                unshareAll: function (datasetName, type) {
+                  var datasetType = getQuery(type, 'type');
+                  return $http.post(baseUrl + datasetName + '?action=unshare_all' + datasetType);
                 }
               };
               return services;
