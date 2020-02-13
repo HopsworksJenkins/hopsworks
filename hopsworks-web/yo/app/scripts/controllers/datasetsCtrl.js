@@ -807,8 +807,7 @@ angular.module('hopsWorksApp')
              * @param datasetId
              */
             self.publish = function(dataset) {
-              ModalService.confirm('sm', 'Confirm', 'Are you sure you want to make this DataSet Public(Cluster)? \n\
-                This will make all its files available to all users of this cluster.').then(
+              ModalService.confirm('sm', 'Confirm', 'Are you sure you want to make this Data Set Public(Cluster)? This will make its entire content available to all users of Hopsworks and its permissions will be set to Owner only').then(
                 function (success) {
                   dataSetService.publish(dataset.name).then(
                     function (success) {

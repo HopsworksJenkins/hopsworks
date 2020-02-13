@@ -112,7 +112,7 @@
     <li class="dropdown-submenu"
         ng-if="!dataset.shared && role === 'Data owner' && (dataset.publicDataset !== 0 || dataset.sharedWith > 0)"
         id="unshare_from">
-        <a tabindex="-1" ng-click="$event.stopPropagation();"><span><i class="fa fa-undo"></i>UnShare from</span></a>
+        <a tabindex="-1" ng-click="$event.stopPropagation();"><span><i class="fa fa-undo"></i>Un-share from</span></a>
         <ul class="dropdown-menu">
             <li ng-if="dataset.publicDataset === 0 && dataset.sharedWith > 0">
                 <a tabindex="-1" ng-click="unshare({'dataset': dataset}); $event.stopPropagation();">
