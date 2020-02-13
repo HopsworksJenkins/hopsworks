@@ -112,16 +112,24 @@ angular.module('hopsWorksApp')
             };
             
             self.getPermissionsText = function() {
-              console.log(dsType)
-              console.log(dsType.type)
-              if(typeof permissions !== 'undefined'){
+              if(dsType === "HIVEDB" || dsType === "FEATURESTORE") {
                 if(permissions === 'GROUP_WRITABLE_SB'){
-                  return self.groupWritableAndStickyBitSet;
+                  return self.hiveGroupWritableAndStickyBitSet;
                 } else if(permissions === 'GROUP_WRITABLE'){
-                  return self.groupWritable;
+                  return self.hiveGroupWritable;
                 } else if(permissions === 'OWNER_ONLY'){
-                  return self.ownerOnlyMsg;
-                } 
+                  return self.hiveOwnerOnlyMsg;
+                }
+              } else {
+                if (typeof permissions !== 'undefined') {
+                  if (permissions === 'GROUP_WRITABLE_SB') {
+                    return self.groupWritableAndStickyBitSet;
+                  } else if (permissions === 'GROUP_WRITABLE') {
+                    return self.groupWritable;
+                  } else if (permissions === 'OWNER_ONLY') {
+                    return self.ownerOnlyMsg;
+                  }
+                }
               }
             };
             
