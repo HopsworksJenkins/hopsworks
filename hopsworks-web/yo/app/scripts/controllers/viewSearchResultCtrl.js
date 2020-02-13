@@ -94,7 +94,7 @@ angular.module('hopsWorksApp')
                 ProjectService.getDatasetInfo({inodeId: result.id}).$promise.then(function (response) {
                   var datasetDto = response;
                   var datasetService = DataSetService(self.request.projectId);
-                  datasetService.import(datasetDto.name, datasetDto.projectName).then(
+                  datasetService.import(datasetDto.name, datasetDto.projectName, datasetDto.datasetType).then(
                     function (success) {
                       growl.success("Dataset Imported", {title: 'Success', ttl: 1500});
                       $uibModalInstance.close(success);
