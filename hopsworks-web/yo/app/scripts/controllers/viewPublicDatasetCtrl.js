@@ -52,7 +52,7 @@ angular.module('hopsWorksApp')
                 return;
               }
               var datasetService = DataSetService(self.request.projectId);
-              datasetService.import(self.dataset.name, self.dataset.projectName, self.dataset.datasetType).then(
+              datasetService.import(self.dataset.name, self.dataset.projectName, self.dataset.type).then(
                 function (success) {
                   growl.success("Dataset Imported", {title: 'Success', ttl: 1500});
                   $uibModalInstance.close(success);
