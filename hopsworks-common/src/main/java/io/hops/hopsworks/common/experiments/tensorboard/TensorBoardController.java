@@ -17,7 +17,7 @@
 package io.hops.hopsworks.common.experiments.tensorboard;
 
 import io.hops.hopsworks.common.dao.hdfs.HdfsLeDescriptorsFacade;
-import io.hops.hopsworks.persistence.entity.hdfsUser.HdfsUsers;
+import io.hops.hopsworks.persistence.entity.hdfs.user.HdfsUsers;
 import io.hops.hopsworks.common.dao.hdfsUser.HdfsUsersFacade;
 import io.hops.hopsworks.persistence.entity.project.Project;
 import io.hops.hopsworks.persistence.entity.tensorflow.TensorBoard;

@@ -39,8 +39,8 @@
 
 package io.hops.hopsworks.persistence.entity.hdfs.inode;
 
-import io.hops.hopsworks.persistence.entity.hdfsUser.HdfsGroups;
-import io.hops.hopsworks.persistence.entity.hdfsUser.HdfsUsers;
+import io.hops.hopsworks.persistence.entity.hdfs.user.HdfsGroups;
+import io.hops.hopsworks.persistence.entity.hdfs.user.HdfsUsers;
 import io.hops.hopsworks.persistence.entity.metadata.Template;
 
 import java.io.Serializable;

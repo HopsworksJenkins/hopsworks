@@ -40,7 +40,7 @@
 package io.hops.hopsworks.common.jobs.spark;
 
 import com.google.common.base.Strings;
-import io.hops.hopsworks.persistence.entity.jobhistory.Execution;
+import io.hops.hopsworks.persistence.entity.jobs.history.Execution;
 import io.hops.hopsworks.persistence.entity.jobs.configuration.ExperimentType;
 import io.hops.hopsworks.persistence.entity.jobs.configuration.spark.SparkJobConfiguration;
 import io.hops.hopsworks.persistence.entity.jobs.description.Jobs;

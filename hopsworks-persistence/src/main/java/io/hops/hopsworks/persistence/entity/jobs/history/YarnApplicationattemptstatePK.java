@@ -37,70 +37,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.hops.hopsworks.persistence.entity.jobhistory;
+package io.hops.hopsworks.persistence.entity.jobs.history;
 
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
-@Entity
-@Table(name = "hops.yarn_applicationstate")
-@XmlRootElement
-@NamedQueries({
-  @NamedQuery(name = "YarnApplicationstate.findAll",
-          query = "SELECT y FROM YarnApplicationstate y"),
-  @NamedQuery(name = "YarnApplicationstate.findByApplicationid",
-          query
-          = "SELECT y FROM YarnApplicationstate y WHERE y.applicationid = :applicationid"),
-  @NamedQuery(name = "YarnApplicationstate.findByAppuser",
-          query
-          = "SELECT y FROM YarnApplicationstate y WHERE y.appuser = :appuser"),
-  @NamedQuery(name = "YarnApplicationstate.findByAppname",
-          query
-          = "SELECT y FROM YarnApplicationstate y WHERE y.appname = :appname ORDER BY y.applicationid DESC"),
-  @NamedQuery(name = "YarnApplicationstate.findByAppuserAndAppsmstate",
-          query
-          = "SELECT y FROM YarnApplicationstate y WHERE y.appuser = :appuser AND y.appsmstate = :appsmstate"),
-  @NamedQuery(name = "YarnApplicationstate.findByAppsmstate",
-          query
-          = "SELECT y FROM YarnApplicationstate y WHERE y.appsmstate = :appsmstate")})
-public class YarnApplicationstate implements Serializable {
+@Embeddable
+public class YarnApplicationattemptstatePK implements Serializable {
 
-  private static final long serialVersionUID = 1L;
-  @Id
   @Basic(optional = false)
   @NotNull
   @Size(min = 1,
           max = 45)
   @Column(name = "applicationid")
   private String applicationid;
-  @Lob
-  @Column(name = "appstate")
-  private byte[] appstate;
-  @Size(max = 45)
-  @Column(name = "appuser")
-  private String appuser;
-  @Size(max = 200)
-  @Column(name = "appname")
-  private String appname;
-  @Size(max = 45)
-  @Column(name = "appsmstate")
-  private String appsmstate;
+  @Basic(optional = false)
+  @NotNull
+  @Size(min = 1,
+          max = 45)
+  @Column(name = "applicationattemptid")
+  private String applicationattemptid;
 
-  public YarnApplicationstate() {
+  public YarnApplicationattemptstatePK() {
   }
 
-  public YarnApplicationstate(String applicationid) {
+  public YarnApplicationattemptstatePK(String applicationid,
+          String applicationattemptid) {
     this.applicationid = applicationid;
+    this.applicationattemptid = applicationattemptid;
   }
 
   public String getApplicationid() {
@@ -111,55 +79,37 @@ public class YarnApplicationstate implements Serializable {
     this.applicationid = applicationid;
   }
 
-  public byte[] getAppstate() {
-    return appstate;
+  public String getApplicationattemptid() {
+    return applicationattemptid;
   }
 
-  public void setAppstate(byte[] appstate) {
-    this.appstate = appstate;
-  }
-
-  public String getAppuser() {
-    return appuser;
-  }
-
-  public void setAppuser(String appuser) {
-    this.appuser = appuser;
-  }
-
-  public String getAppname() {
-    return appname;
-  }
-
-  public void setAppname(String appname) {
-    this.appname = appname;
-  }
-
-  public String getAppsmstate() {
-    return appsmstate;
-  }
-
-  public void setAppsmstate(String appsmstate) {
-    this.appsmstate = appsmstate;
+  public void setApplicationattemptid(String applicationattemptid) {
+    this.applicationattemptid = applicationattemptid;
   }
 
   @Override
   public int hashCode() {
     int hash = 0;
     hash += (applicationid != null ? applicationid.hashCode() : 0);
+    hash += (applicationattemptid != null ? applicationattemptid.hashCode() : 0);
     return hash;
   }
 
   @Override
   public boolean equals(Object object) {
     // TODO: Warning - this method won't work in the case the id fields are not set
-    if (!(object instanceof YarnApplicationstate)) {
+    if (!(object instanceof YarnApplicationattemptstatePK)) {
       return false;
     }
-    YarnApplicationstate other = (YarnApplicationstate) object;
+    YarnApplicationattemptstatePK other = (YarnApplicationattemptstatePK) object;
     if ((this.applicationid == null && other.applicationid != null)
             || (this.applicationid != null && !this.applicationid.equals(
                     other.applicationid))) {
+      return false;
+    }
+    if ((this.applicationattemptid == null && other.applicationattemptid != null)
+            || (this.applicationattemptid != null && !this.applicationattemptid.
+            equals(other.applicationattemptid))) {
       return false;
     }
     return true;
@@ -167,8 +117,9 @@ public class YarnApplicationstate implements Serializable {
 
   @Override
   public String toString() {
-    return "se.kth.bbc.jobs.jobhistory.YarnApplicationstate[ applicationid="
-            + applicationid + " ]";
+    return "se.kth.bbc.jobs.yarn.YarnApplicationattemptstatePK[ applicationid="
+            + applicationid + ", applicationattemptid=" + applicationattemptid
+            + " ]";
   }
 
 }

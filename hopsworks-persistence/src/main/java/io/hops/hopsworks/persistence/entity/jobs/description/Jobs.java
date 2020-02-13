@@ -40,7 +40,7 @@
 package io.hops.hopsworks.persistence.entity.jobs.description;
 
 import com.google.common.base.Strings;
-import io.hops.hopsworks.persistence.entity.jobhistory.Execution;
+import io.hops.hopsworks.persistence.entity.jobs.history.Execution;
 import io.hops.hopsworks.persistence.entity.jobs.configuration.JobConfiguration;
 import io.hops.hopsworks.persistence.entity.jobs.configuration.JobConfigurationConverter;
 import io.hops.hopsworks.persistence.entity.jobs.configuration.JobType;

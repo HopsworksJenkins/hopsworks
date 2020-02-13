@@ -39,7 +39,7 @@
 
 package io.hops.hopsworks.common.livy;
 
-import io.hops.hopsworks.persistence.entity.jobhistory.YarnApplicationstate;
+import io.hops.hopsworks.persistence.entity.jobs.history.YarnApplicationstate;
 import io.hops.hopsworks.common.dao.jobhistory.YarnApplicationstateFacade;
 import io.hops.hopsworks.persistence.entity.project.Project;
 import io.hops.hopsworks.common.dao.project.ProjectFacade;

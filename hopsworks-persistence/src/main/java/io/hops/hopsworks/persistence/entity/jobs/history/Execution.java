@@ -37,7 +37,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.hops.hopsworks.persistence.entity.jobhistory;
+package io.hops.hopsworks.persistence.entity.jobs.history;
 
 import io.hops.hopsworks.persistence.entity.jobs.FilesToRemove;
 import io.hops.hopsworks.persistence.entity.jobs.configuration.history.JobFinalStatus;

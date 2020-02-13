@@ -37,7 +37,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.hops.hopsworks.persistence.entity.hdfsUser;
+package io.hops.hopsworks.persistence.entity.hdfs.user;
 
 import java.io.Serializable;
 import java.util.Collection;

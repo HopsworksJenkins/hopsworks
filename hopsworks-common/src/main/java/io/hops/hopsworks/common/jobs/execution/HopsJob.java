@@ -39,7 +39,7 @@
 
 package io.hops.hopsworks.common.jobs.execution;
 
-import io.hops.hopsworks.persistence.entity.jobhistory.Execution;
+import io.hops.hopsworks.persistence.entity.jobs.history.Execution;
 import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.util.logging.Level;

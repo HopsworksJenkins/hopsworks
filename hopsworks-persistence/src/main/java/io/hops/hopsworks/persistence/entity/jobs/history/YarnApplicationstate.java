@@ -37,143 +37,129 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.hops.hopsworks.persistence.entity.hdfsUser;
+package io.hops.hopsworks.persistence.entity.jobs.history;
 
 import java.io.Serializable;
-import java.util.Collection;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
-@Table(name = "hops.hdfs_users")
+@Table(name = "hops.yarn_applicationstate")
 @XmlRootElement
 @NamedQueries({
-  @NamedQuery(name = "HdfsUsers.findAll",
+  @NamedQuery(name = "YarnApplicationstate.findAll",
+          query = "SELECT y FROM YarnApplicationstate y"),
+  @NamedQuery(name = "YarnApplicationstate.findByApplicationid",
           query
-          = "SELECT h FROM HdfsUsers h"),
-  @NamedQuery(name = "HdfsUsers.findProjectUsers",
-      query = "SELECT h FROM HdfsUsers h WHERE h.name LIKE CONCAT(:name, '\\_\\_%')"),
-  @NamedQuery(name = "HdfsUsers.findByName",
+          = "SELECT y FROM YarnApplicationstate y WHERE y.applicationid = :applicationid"),
+  @NamedQuery(name = "YarnApplicationstate.findByAppuser",
           query
-          = "SELECT h FROM HdfsUsers h WHERE h.name = :name")})
-public class HdfsUsers implements Serializable {
+          = "SELECT y FROM YarnApplicationstate y WHERE y.appuser = :appuser"),
+  @NamedQuery(name = "YarnApplicationstate.findByAppname",
+          query
+          = "SELECT y FROM YarnApplicationstate y WHERE y.appname = :appname ORDER BY y.applicationid DESC"),
+  @NamedQuery(name = "YarnApplicationstate.findByAppuserAndAppsmstate",
+          query
+          = "SELECT y FROM YarnApplicationstate y WHERE y.appuser = :appuser AND y.appsmstate = :appsmstate"),
+  @NamedQuery(name = "YarnApplicationstate.findByAppsmstate",
+          query
+          = "SELECT y FROM YarnApplicationstate y WHERE y.appsmstate = :appsmstate")})
+public class YarnApplicationstate implements Serializable {
 
   private static final long serialVersionUID = 1L;
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Basic(optional = false)
-  @Column(name = "id")
-  private Integer id;
   @Basic(optional = false)
   @NotNull
   @Size(min = 1,
-          max = 100)
-  @Column(name = "name")
-  private String name;
-  @JoinTable(name = "hops.hdfs_users_groups",
-          joinColumns
-          = {
-            @JoinColumn(name = "user_id",
-                    referencedColumnName = "id")},
-          inverseJoinColumns
-          = {
-            @JoinColumn(name = "group_id",
-                    referencedColumnName = "id")})
-  @ManyToMany
-  private Collection<HdfsGroups> hdfsGroupsCollection;
+          max = 45)
+  @Column(name = "applicationid")
+  private String applicationid;
+  @Lob
+  @Column(name = "appstate")
+  private byte[] appstate;
+  @Size(max = 45)
+  @Column(name = "appuser")
+  private String appuser;
+  @Size(max = 200)
+  @Column(name = "appname")
+  private String appname;
+  @Size(max = 45)
+  @Column(name = "appsmstate")
+  private String appsmstate;
 
-  public HdfsUsers() {
+  public YarnApplicationstate() {
   }
 
-  public HdfsUsers(Integer id) {
-    this.id = id;
+  public YarnApplicationstate(String applicationid) {
+    this.applicationid = applicationid;
   }
 
-  public HdfsUsers(String name) {
-    this.name = name;
+  public String getApplicationid() {
+    return applicationid;
   }
 
-  public HdfsUsers(Integer id, String name) {
-    this.id = id;
-    this.name = name;
+  public void setApplicationid(String applicationid) {
+    this.applicationid = applicationid;
   }
 
-  public Integer getId() {
-    return id;
+  public byte[] getAppstate() {
+    return appstate;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
+  public void setAppstate(byte[] appstate) {
+    this.appstate = appstate;
   }
 
-  public String getName() {
-    return name;
+  public String getAppuser() {
+    return appuser;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setAppuser(String appuser) {
+    this.appuser = appuser;
   }
 
-  public String getUsername() {
-    int index = this.name.indexOf("__");
-    if (index == -1) {
-      return this.name;
-    }
-    index += 2; //removes the "__"
-    return this.name.substring(index);
+  public String getAppname() {
+    return appname;
   }
 
-  public String getProject() {
-    int index = this.name.indexOf("__");
-    if (index == -1) {
-      return "";
-    }
-    return this.name.substring(0, index);
+  public void setAppname(String appname) {
+    this.appname = appname;
   }
 
-  @XmlTransient
-  @JsonIgnore
-  public Collection<HdfsGroups> getHdfsGroupsCollection() {
-    return hdfsGroupsCollection;
+  public String getAppsmstate() {
+    return appsmstate;
   }
 
-  public boolean inGroup(HdfsGroups group){
-    if(hdfsGroupsCollection == null || group == null)
-      return false;
-    return hdfsGroupsCollection.contains(group);
+  public void setAppsmstate(String appsmstate) {
+    this.appsmstate = appsmstate;
   }
-  
+
   @Override
   public int hashCode() {
     int hash = 0;
-    hash += (id != null ? id.hashCode() : 0);
+    hash += (applicationid != null ? applicationid.hashCode() : 0);
     return hash;
   }
 
   @Override
   public boolean equals(Object object) {
     // TODO: Warning - this method won't work in the case the id fields are not set
-    if (!(object instanceof HdfsUsers)) {
+    if (!(object instanceof YarnApplicationstate)) {
       return false;
     }
-    HdfsUsers other = (HdfsUsers) object;
-    if ((this.id == null && other.id != null) || (this.id != null && !this.id.
-            equals(other.id))) {
+    YarnApplicationstate other = (YarnApplicationstate) object;
+    if ((this.applicationid == null && other.applicationid != null)
+            || (this.applicationid != null && !this.applicationid.equals(
+                    other.applicationid))) {
       return false;
     }
     return true;
@@ -181,7 +167,8 @@ public class HdfsUsers implements Serializable {
 
   @Override
   public String toString() {
-    return "se.kth.hopsworks.hdfsUsers.HdfsUsers[ id=" + id + " ]";
+    return "se.kth.bbc.jobs.jobhistory.YarnApplicationstate[ applicationid="
+            + applicationid + " ]";
   }
 
 }
