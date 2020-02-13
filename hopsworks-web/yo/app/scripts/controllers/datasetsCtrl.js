@@ -1248,7 +1248,7 @@ angular.module('hopsWorksApp')
              * @returns {undefined}
              */
             self.share = function (dataset) {
-              ModalService.shareDataset('md', dataset.attributes.path, dataset.type).then(
+              ModalService.shareDataset('md', dataset.attributes.path, dataset.datasetType).then(
                       function (success) {
                         self.showSuccess(success, 'The Dataset was successfully shared.', 4);
                         getDirContents();
@@ -1263,7 +1263,7 @@ angular.module('hopsWorksApp')
              * @returns {undefined}
              */
             self.permissions = function (dataset, permissions) {
-              ModalService.permissions('md', dataset.attributes.path, dataset.type, permissions).then(
+              ModalService.permissions('md', dataset.attributes.path, dataset.datasetType, permissions).then(
                       function (success) {
                         self.showSuccess(success, 'The Dataset permissions were successfully modified.', 4);
                         getDirContents();
@@ -1277,7 +1277,7 @@ angular.module('hopsWorksApp')
              * @returns {undefined}
              */
             self.unshare = function (dataset) {
-              ModalService.unshareDataset('md', dataset.attributes.path, dataset.type).then(
+              ModalService.unshareDataset('md', dataset.attributes.path, dataset.datasetType).then(
                       function (success) {
                         self.showSuccess(success, 'The Dataset was successfully unshared.', 4);
                         getDirContents();
