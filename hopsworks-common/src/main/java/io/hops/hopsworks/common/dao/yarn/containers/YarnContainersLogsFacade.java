@@ -40,6 +40,8 @@
 package io.hops.hopsworks.common.dao.yarn.containers;
 
 import io.hops.hopsworks.common.dao.AbstractFacade;
+import io.hops.hopsworks.persistence.entity.yarn.YarnContainersLog;
+
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

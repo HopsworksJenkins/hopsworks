@@ -39,10 +39,10 @@
 
 package io.hops.hopsworks.common.dao.jupyter.config;
 
-import io.hops.hopsworks.common.dao.hdfsUser.HdfsUsers;
+import io.hops.hopsworks.persistence.entity.hdfsUser.HdfsUsers;
 import io.hops.hopsworks.common.dao.hdfsUser.HdfsUsersFacade;
-import io.hops.hopsworks.common.dao.jupyter.JupyterProject;
-import io.hops.hopsworks.common.dao.project.Project;
+import io.hops.hopsworks.persistence.entity.jupyter.JupyterProject;
+import io.hops.hopsworks.persistence.entity.project.Project;
 import io.hops.hopsworks.common.util.Settings;
 
 import javax.ejb.EJB;

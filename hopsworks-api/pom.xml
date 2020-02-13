@@ -135,14 +135,14 @@
     <dependency>
       <groupId>io.hops.hopsworks</groupId>
       <artifactId>hopsworks-dela</artifactId>
-      <version>1.3.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <type>ejb</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.hops.hopsworks</groupId>
       <artifactId>hopsworks-jwt</artifactId>
-      <version>1.3.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <type>ejb</type>
       <scope>provided</scope>
     </dependency>
@@ -152,6 +152,12 @@
       <artifactId>hopsworks-rest-utils</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.hops.hopsworks</groupId>
+      <artifactId>hopsworks-persistence</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <!-- jersey dependencies -->

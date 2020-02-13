@@ -19,7 +19,7 @@ package io.hops.hopsworks.ca.controllers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.hops.hopsworks.ca.dao.ConfEntry;
+import io.hops.hopsworks.persistence.entity.ca.ConfEntry;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.ConcurrencyManagement;
