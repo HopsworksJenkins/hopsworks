@@ -113,6 +113,7 @@ angular.module('hopsWorksApp')
             
             self.getPermissionsText = function() {
               console.log(dsType)
+              console.log(dsType.type)
               if(typeof permissions !== 'undefined'){
                 if(permissions === 'GROUP_WRITABLE_SB'){
                   return self.groupWritableAndStickyBitSet;
