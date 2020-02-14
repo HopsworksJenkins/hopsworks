@@ -80,7 +80,6 @@
       <groupId>io.hops.hopsworks</groupId>
       <artifactId>hopsworks-persistence</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
