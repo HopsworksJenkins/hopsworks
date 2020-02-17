@@ -39,18 +39,19 @@
 
 package io.hops.hopsworks.dela.cluster;
 
-import io.hops.hopsworks.common.dao.dataset.Dataset;
 import io.hops.hopsworks.common.dao.dataset.DatasetFacade;
-import io.hops.hopsworks.common.dao.dataset.SharedState;
-import io.hops.hopsworks.common.dao.log.operation.OperationType;
-import io.hops.hopsworks.common.dao.project.Project;
 import io.hops.hopsworks.common.dataset.DatasetController;
-import java.util.List;
-import java.util.logging.Logger;
+import io.hops.hopsworks.persistence.entity.dataset.Dataset;
+import io.hops.hopsworks.persistence.entity.dataset.SharedState;
+import io.hops.hopsworks.persistence.entity.log.operation.OperationType;
+import io.hops.hopsworks.persistence.entity.project.Project;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import java.util.List;
+import java.util.logging.Logger;
 
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NEVER)
