@@ -43,12 +43,12 @@ import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.filter.NoCacheResponse;
 import io.hops.hopsworks.api.hopssite.dto.LocalDatasetDTO;
 import io.hops.hopsworks.api.hopssite.dto.LocalDatasetHelper;
-import io.hops.hopsworks.common.dao.dataset.Dataset;
 import io.hops.hopsworks.common.dataset.DatasetController;
 import io.hops.hopsworks.common.hdfs.DistributedFileSystemOps;
 import io.hops.hopsworks.common.hdfs.DistributedFsService;
 import io.hops.hopsworks.dela.cluster.ClusterDatasetController;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
+import io.hops.hopsworks.persistence.entity.dataset.Dataset;
 import io.swagger.annotations.Api;
 
 import javax.ejb.EJB;
