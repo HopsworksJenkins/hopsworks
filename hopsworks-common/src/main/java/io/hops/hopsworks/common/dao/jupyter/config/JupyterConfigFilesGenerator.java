@@ -39,12 +39,17 @@
 
 package io.hops.hopsworks.common.dao.jupyter.config;
 
+import com.logicalclocks.servicediscoverclient.exceptions.ServiceDiscoveryException;
+import com.logicalclocks.servicediscoverclient.service.Service;
 import freemarker.template.TemplateException;
 import io.hops.hopsworks.common.dao.jupyter.JupyterSettings;
 import io.hops.hopsworks.common.dao.project.Project;
+import io.hops.hopsworks.common.hive.HiveController;
+import io.hops.hopsworks.common.hosts.ServiceDiscoveryController;
 import io.hops.hopsworks.common.jobs.spark.SparkJobConfiguration;
 import io.hops.hopsworks.common.jupyter.JupyterContentsManager;
 import io.hops.hopsworks.common.jupyter.JupyterNbVCSController;
+import io.hops.hopsworks.common.kafka.KafkaBrokers;
 import io.hops.hopsworks.common.tensorflow.TfLibMappingUtil;
 import io.hops.hopsworks.common.util.Settings;
 import io.hops.hopsworks.common.util.SparkConfigurationUtil;
@@ -97,6 +102,12 @@ public class JupyterConfigFilesGenerator {
   private JupyterNbVCSController jupyterNbVCSController;
   @EJB
   private TemplateEngine templateEngine;
+  @EJB
+  private ServiceDiscoveryController serviceDiscoveryController;
+  @EJB
+  private KafkaBrokers kafkaBrokers;
+  @EJB
+  private HiveController hiveController;
   
   public JupyterPaths generateJupyterPaths(Project project, String hdfsUser, String secretConfig) {
     return new JupyterPaths(settings.getJupyterDir(), project.getName(), hdfsUser, secretConfig);
@@ -177,23 +188,22 @@ public class JupyterConfigFilesGenerator {
   
   public void createJupyterKernelConfig(Writer out, Project project, JupyterSettings js, String hdfsUser)
       throws IOException {
-    KernelTemplate kernelTemplate = KernelTemplateBuilder.newBuilder()
-        .setHdfsUser(hdfsUser)
-        .setHadoopHome(settings.getHadoopSymbolicLinkDir())
-        .setHadoopVersion(settings.getHadoopVersion())
-        .setAnacondaHome(settings.getAnacondaProjectDir(project))
-        .setSecretDirectory(settings.getStagingDir() + Settings.PRIVATE_DIRS + js.getSecret())
-        .setProject(project)
-        .setHiveEndpoints(settings.getHiveServerHostName(false))
-        .setLibHdfsOpts("-Xmx512m")
-        .build();
-    
-    Map<String, Object> dataModel = new HashMap<>(1);
-    dataModel.put("kernel", kernelTemplate);
-    
     try {
+      KernelTemplate kernelTemplate = KernelTemplateBuilder.newBuilder()
+          .setHdfsUser(hdfsUser)
+          .setHadoopHome(settings.getHadoopSymbolicLinkDir())
+          .setHadoopVersion(settings.getHadoopVersion())
+          .setAnacondaHome(settings.getAnacondaProjectDir(project))
+          .setSecretDirectory(settings.getStagingDir() + Settings.PRIVATE_DIRS + js.getSecret())
+          .setProject(project)
+          .setHiveEndpoints(hiveController.getHiveServerInternalEndpoint())
+          .setLibHdfsOpts("-Xmx512m")
+          .build();
+  
+      Map<String, Object> dataModel = new HashMap<>(1);
+      dataModel.put("kernel", kernelTemplate);
       templateEngine.template(KernelTemplate.TEMPLATE_NAME, dataModel, out);
-    } catch (TemplateException ex) {
+    } catch (TemplateException | ServiceDiscoveryException ex) {
       throw new IOException(ex);
     }
   }
@@ -262,7 +272,7 @@ public class JupyterConfigFilesGenerator {
       "hdfs:///Projects/" + project.getName() + "/Resources");
 
     finalSparkConfiguration.putAll(sparkConfigurationUtil.setFrameworkProperties(project, sparkJobConfiguration,
-      settings, hdfsUser, tfLdLibraryPath, extraJavaOptions));
+      settings, hdfsUser, tfLdLibraryPath, extraJavaOptions, kafkaBrokers.getKafkaBrokersString()));
     
     StringBuilder sparkConfBuilder = new StringBuilder();
     ArrayList<String> keys = new ArrayList<>(finalSparkConfiguration.keySet());
@@ -273,30 +283,33 @@ public class JupyterConfigFilesGenerator {
     }
     sparkConfBuilder.deleteCharAt(sparkConfBuilder.lastIndexOf(","));
   
-    SparkMagicConfigTemplateBuilder templateBuilder = SparkMagicConfigTemplateBuilder.newBuilder()
-        .setLivyIp(settings.getLivyIp())
-        .setJupyterHome(confDirPath)
-        .setDriverCores(Integer.parseInt(finalSparkConfiguration.get(Settings.SPARK_DRIVER_CORES_ENV)))
-        .setDriverMemory(finalSparkConfiguration.get(Settings.SPARK_DRIVER_MEMORY_ENV));
-    if (sparkJobConfiguration.isDynamicAllocationEnabled() || sparkJobConfiguration.getExperimentType() != null) {
-      templateBuilder.setNumExecutors(1);
-    } else {
-      templateBuilder.setNumExecutors(Integer.parseInt(finalSparkConfiguration
-          .get(Settings.SPARK_NUMBER_EXECUTORS_ENV)));
-    }
-    templateBuilder
-        .setExecutorCores(Integer.parseInt(finalSparkConfiguration.get(Settings.SPARK_EXECUTOR_CORES_ENV)))
-        .setExecutorMemory(finalSparkConfiguration.get(Settings.SPARK_EXECUTOR_MEMORY_ENV))
-        .setHdfsUser(hdfsUser)
-        .setYarnQueue(sparkJobConfiguration.getAmQueue())
-        .setHadoopHome(settings.getHadoopSymbolicLinkDir())
-        .setHadoopVersion(settings.getHadoopVersion())
-        .setSparkConfiguration(sparkConfBuilder.toString());
-    Map<String, Object> dataModel = new HashMap<>(1);
-    dataModel.put("conf", templateBuilder.build());
     try {
+      Service livyService = serviceDiscoveryController.getAnyAddressOfServiceWithDNS(
+          ServiceDiscoveryController.SERVICE.LIVY);
+      SparkMagicConfigTemplateBuilder templateBuilder = SparkMagicConfigTemplateBuilder.newBuilder()
+          .setLivyIp(livyService.getAddress())
+          .setJupyterHome(confDirPath)
+          .setDriverCores(Integer.parseInt(finalSparkConfiguration.get(Settings.SPARK_DRIVER_CORES_ENV)))
+          .setDriverMemory(finalSparkConfiguration.get(Settings.SPARK_DRIVER_MEMORY_ENV));
+      if (sparkJobConfiguration.isDynamicAllocationEnabled() || sparkJobConfiguration.getExperimentType() != null) {
+        templateBuilder.setNumExecutors(1);
+      } else {
+        templateBuilder.setNumExecutors(Integer.parseInt(finalSparkConfiguration
+            .get(Settings.SPARK_NUMBER_EXECUTORS_ENV)));
+      }
+      templateBuilder
+          .setExecutorCores(Integer.parseInt(finalSparkConfiguration.get(Settings.SPARK_EXECUTOR_CORES_ENV)))
+          .setExecutorMemory(finalSparkConfiguration.get(Settings.SPARK_EXECUTOR_MEMORY_ENV))
+          .setHdfsUser(hdfsUser)
+          .setYarnQueue(sparkJobConfiguration.getAmQueue())
+          .setHadoopHome(settings.getHadoopSymbolicLinkDir())
+          .setHadoopVersion(settings.getHadoopVersion())
+          .setSparkConfiguration(sparkConfBuilder.toString());
+      Map<String, Object> dataModel = new HashMap<>(1);
+      dataModel.put("conf", templateBuilder.build());
+  
       templateEngine.template(SparkMagicConfigTemplate.TEMPLATE_NAME, dataModel, out);
-    } catch (TemplateException ex) {
+    } catch (TemplateException | ServiceDiscoveryException ex) {
       throw new IOException(ex);
     }
   }
