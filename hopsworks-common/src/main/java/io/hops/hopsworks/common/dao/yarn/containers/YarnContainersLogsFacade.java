@@ -65,12 +65,12 @@ public class YarnContainersLogsFacade extends AbstractFacade<YarnContainersLog> 
 
   @Override
   public List<YarnContainersLog> findAll() {
-    TypedQuery<YarnContainersLog> query = em.createNamedQuery("YarnContainersLogs.findAll",YarnContainersLog.class);
+    TypedQuery<YarnContainersLog> query = em.createNamedQuery("YarnContainersLog.findAll",YarnContainersLog.class);
     return query.getResultList();
   }
   
   public List<YarnContainersLog> findAllRunningOnGpus() {
-    TypedQuery<YarnContainersLog> query = em.createNamedQuery("YarnContainersLogs.findRunningOnGpu",
+    TypedQuery<YarnContainersLog> query = em.createNamedQuery("YarnContainersLog.findRunningOnGpu",
         YarnContainersLog.class);
     return query.getResultList();
   }

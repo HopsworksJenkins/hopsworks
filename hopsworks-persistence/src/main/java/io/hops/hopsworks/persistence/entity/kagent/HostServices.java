@@ -228,7 +228,7 @@ public class HostServices implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.kagent.Services[ id=" + id + " ]";
+    return "Services[ id=" + id + " ]";
   }
 
   public Health getHealth() {

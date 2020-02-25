@@ -116,8 +116,8 @@ import javax.xml.bind.annotation.XmlRootElement;
           query = "SELECT c FROM CondaCommands c WHERE c.hostId = :host"),
   @NamedQuery(name = "CondaCommands.findNotFinishedByHost",
           query = "SELECT c FROM CondaCommands c WHERE c.hostId = :host AND c.status != "
-            + "io.hops.hopsworks.common.dao.python.CondaCommandFacade.CondaStatus.SUCCESS "
-            + "AND c.status != io.hops.hopsworks.common.dao.python.CondaCommandFacade.CondaStatus.FAILED")})
+            + "io.hops.hopsworks.persistence.entity.python.CondaStatus.SUCCESS "
+            + "AND c.status != io.hops.hopsworks.persistence.entity.python.CondaStatus.FAILED")})
 public class CondaCommands implements Serializable {
 
   private static final long serialVersionUID = 1L;

@@ -83,7 +83,7 @@ public class TensorBoardPK implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.jupyter.TensorBoardPK[ project=" +
+    return "TensorBoardPK[ project=" +
             getProjectId() + ", user=" + getUserId() + " ]";
   }
 }

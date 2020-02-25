@@ -55,32 +55,32 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Table(name = "yarn_containers_logs", catalog = "hops")
 @XmlRootElement
 @NamedQueries({
-  @NamedQuery(name = "YarnContainersLogs.findAll",
+  @NamedQuery(name = "YarnContainersLog.findAll",
       query = "SELECT y FROM YarnContainersLog y"),
-  @NamedQuery(name = "YarnContainersLogs.findByContainerId",
+  @NamedQuery(name = "YarnContainersLog.findByContainerId",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.containerId = :containerId"),
-  @NamedQuery(name = "YarnContainersLogs.findByStart",
+  @NamedQuery(name = "YarnContainersLog.findByStart",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.start = :start"),
-  @NamedQuery(name = "YarnContainersLogs.findByStop",
+  @NamedQuery(name = "YarnContainersLog.findByStop",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.stop = :stop"),
-  @NamedQuery(name = "YarnContainersLogs.findByExitStatus",
+  @NamedQuery(name = "YarnContainersLog.findByExitStatus",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.exitStatus = :exitStatus"),
-  @NamedQuery(name = "YarnContainersLogs.findByPrice",
+  @NamedQuery(name = "YarnContainersLog.findByPrice",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.price = :price"),
-  @NamedQuery(name = "YarnContainersLogs.findByVcores",
+  @NamedQuery(name = "YarnContainersLog.findByVcores",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.vcores = :vcores"),
-  @NamedQuery(name = "YarnContainersLogs.findByGpus",
+  @NamedQuery(name = "YarnContainersLog.findByGpus",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.gpus = :gpus"),
-  @NamedQuery(name = "YarnContainersLogs.findByMb",
+  @NamedQuery(name = "YarnContainersLog.findByMb",
       query = "SELECT y FROM YarnContainersLog y WHERE y.mb = :mb"),
-  @NamedQuery(name = "YarnContainersLogs.findRunningOnGpu",
+  @NamedQuery(name = "YarnContainersLog.findRunningOnGpu",
       query
       = "SELECT y FROM YarnContainersLog y WHERE y.gpus <> 0 and y.exitStatus = -201")})
 public class YarnContainersLog implements Serializable {

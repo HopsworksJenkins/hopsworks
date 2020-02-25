@@ -163,7 +163,7 @@ public class RemoteUser implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.remote.oauth.RemoteUser[ id=" + id + " ]";
+    return "RemoteUser[ id=" + id + " ]";
   }
 
 }

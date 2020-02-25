@@ -73,8 +73,8 @@ import java.util.List;
                 query = "SELECT c FROM SystemCommand c WHERE c.host = :host"),
     @NamedQuery(name = "SystemCommand.findNotFinishedByHost",
                 query = "SELECT c FROM SystemCommand c WHERE c.host = :host "
-                  + "AND c.commandStatus != io.hops.hopsworks.common.dao.command.SystemCommandFacade.STATUS.FINISHED "
-                  + "AND c.commandStatus != io.hops.hopsworks.common.dao.command.SystemCommandFacade.STATUS.FAILED")
+                  + "AND c.commandStatus != io.hops.hopsworks.persistence.entity.command.CommandStatus.FINISHED "
+                  + "AND c.commandStatus != io.hops.hopsworks.persistence.entity.command.CommandStatus.FAILED")
   })
 public class SystemCommand implements Serializable {
   private static final long serialVersionUID = 1L;

@@ -537,7 +537,7 @@ public class RStudioSettings implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.jupyter.RStudioSettings[ rstudioSettingsPK="
+    return "RStudioSettings[ rstudioSettingsPK="
         + rstudioSettingsPK + " ]";
   }
 

@@ -219,7 +219,7 @@ public class ApiKey implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.user.security.apiKey[ id=" + id + " ]";
+    return "apiKey[ id=" + id + " ]";
   }
   
 }

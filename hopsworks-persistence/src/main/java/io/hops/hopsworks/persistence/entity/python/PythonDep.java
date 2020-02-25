@@ -222,7 +222,7 @@ public class PythonDep implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.pythonDeps.PythonDep[ id=" + id + " ]";
+    return "PythonDep[ id=" + id + " ]";
   }
 
 }
