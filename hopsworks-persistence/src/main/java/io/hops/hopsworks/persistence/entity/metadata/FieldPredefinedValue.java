@@ -56,7 +56,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name = "hopsworks.meta_field_predefined_values")
+@Table(name = "meta_field_predefined_values", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "FieldPredefinedValue.findAll",

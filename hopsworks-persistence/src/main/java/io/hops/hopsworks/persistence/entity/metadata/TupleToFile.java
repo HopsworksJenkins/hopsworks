@@ -61,7 +61,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import io.hops.hopsworks.persistence.entity.hdfs.inode.Inode;
 
 @Entity
-@Table(name = "hopsworks.meta_tuple_to_file")
+@Table(name = "meta_tuple_to_file", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "TupleToFile.findAll",

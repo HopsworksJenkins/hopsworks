@@ -54,7 +54,7 @@ import io.hops.hopsworks.persistence.entity.metadata.Metadata;
 import io.hops.hopsworks.persistence.entity.metadata.MetadataPK;
 
 @Entity
-@Table(name = "hopsworks.meta_log")
+@Table(name = "meta_log", catalog = "hopsworks")
 public class MetaLog implements Serializable {
 
   private static final long serialVersionUID = 1L;

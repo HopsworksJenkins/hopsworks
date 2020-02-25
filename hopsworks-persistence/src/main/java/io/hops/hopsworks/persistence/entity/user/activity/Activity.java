@@ -63,7 +63,7 @@ import io.hops.hopsworks.persistence.entity.project.Project;
 import io.hops.hopsworks.persistence.entity.user.Users;
 
 @Entity
-@Table(name = "hopsworks.activity")
+@Table(name = "activity", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Activity.findAll",

@@ -62,7 +62,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name = "hopsworks.meta_tables")
+@Table(name = "meta_tables", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "MTable.findAll",

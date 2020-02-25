@@ -31,7 +31,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name = "hopsworks.invalid_jwt")
+@Table(name = "invalid_jwt", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "InvalidJwt.findAll",

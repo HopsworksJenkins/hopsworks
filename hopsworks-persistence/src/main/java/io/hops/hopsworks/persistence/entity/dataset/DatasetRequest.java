@@ -63,7 +63,7 @@ import io.hops.hopsworks.persistence.entity.message.Message;
 import io.hops.hopsworks.persistence.entity.project.team.ProjectTeam;
 
 @Entity
-@Table(name = "hopsworks.dataset_request")
+@Table(name = "dataset_request", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "DatasetRequest.findAll",

@@ -48,7 +48,7 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name = "hopsworks.authorized_sshkeys")
+@Table(name = "authorized_sshkeys", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "AuthorizedSshkeys.findAll",

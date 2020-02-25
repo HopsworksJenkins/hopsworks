@@ -49,7 +49,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "hopsworks.remote_material_references")
+@Table(name = "remote_material_references", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "RemoteMaterialReferences.findAll",

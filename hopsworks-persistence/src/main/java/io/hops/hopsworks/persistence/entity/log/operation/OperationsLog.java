@@ -55,7 +55,7 @@ import io.hops.hopsworks.persistence.entity.dataset.Dataset;
 import io.hops.hopsworks.persistence.entity.metadata.Template;
 
 @Entity
-@Table(name = "hopsworks.ops_log")
+@Table(name = "ops_log", catalog = "hopsworks")
 public class OperationsLog implements Serializable {
 
   private static final long serialVersionUID = 1L;

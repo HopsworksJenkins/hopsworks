@@ -59,7 +59,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import io.hops.hopsworks.persistence.entity.user.Users;
 
 @Entity
-@Table(name = "hopsworks.project_team")
+@Table(name = "project_team", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "ProjectTeam.findRoleForUserInProject",

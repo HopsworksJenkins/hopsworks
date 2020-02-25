@@ -33,7 +33,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name = "hopsworks.jwt_signing_key")
+@Table(name = "jwt_signing_key", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "JwtSigningKey.findAll",

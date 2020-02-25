@@ -51,7 +51,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import io.hops.hopsworks.persistence.entity.project.Project;
 
 @Entity
-@Table(name = "hopsworks.project_services")
+@Table(name = "project_services", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "ProjectServices.findAll",

@@ -80,7 +80,7 @@ import io.hops.hopsworks.persistence.entity.user.security.ua.ValidationKeyType;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
-@Table(name = "hopsworks.users")
+@Table(name = "users", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Users.findAll",

@@ -84,7 +84,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 
 @Entity
-@Table(name = "hopsworks.project")
+@Table(name = "project", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Project.findAll", query = "SELECT t FROM Project t"),

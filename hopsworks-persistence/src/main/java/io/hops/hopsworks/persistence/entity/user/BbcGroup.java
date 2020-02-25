@@ -56,7 +56,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
-@Table(name = "hopsworks.bbc_group")
+@Table(name = "bbc_group", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "BbcGroup.findAll",

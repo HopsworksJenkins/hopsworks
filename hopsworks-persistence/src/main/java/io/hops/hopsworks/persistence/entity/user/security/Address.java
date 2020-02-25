@@ -58,7 +58,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import io.hops.hopsworks.persistence.entity.user.Users;
 
 @Entity
-@Table(name = "hopsworks.address")
+@Table(name = "address", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Address.findAll",

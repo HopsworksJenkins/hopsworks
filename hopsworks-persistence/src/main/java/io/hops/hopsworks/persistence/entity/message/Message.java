@@ -67,7 +67,7 @@ import java.util.Collection;
 import java.util.Date;
 
 @Entity
-@Table(name = "hopsworks.message")
+@Table(name = "message", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Message.findAll",

@@ -75,7 +75,7 @@ import java.util.List;
  * An Execution is an instance of execution of a specific Jobs.
  */
 @Entity
-@Table(name = "hopsworks.executions")
+@Table(name = "executions", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Execution.findAll",

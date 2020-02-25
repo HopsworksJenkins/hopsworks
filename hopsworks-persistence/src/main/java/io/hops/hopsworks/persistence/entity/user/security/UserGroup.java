@@ -51,7 +51,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import io.hops.hopsworks.persistence.entity.user.Users;
 
 @Entity
-@Table(name = "hopsworks.user_group")
+@Table(name = "user_group", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "UserGroup.findAll",

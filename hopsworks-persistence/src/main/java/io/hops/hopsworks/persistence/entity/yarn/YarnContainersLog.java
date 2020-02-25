@@ -52,40 +52,37 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @Entity
-@Table(name = "yarn_containers_logs")
+@Table(name = "yarn_containers_logs", catalog = "hops")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "YarnContainersLogs.findAll",
-      query = "SELECT y FROM YarnContainersLogs y"),
+      query = "SELECT y FROM YarnContainersLog y"),
   @NamedQuery(name = "YarnContainersLogs.findByContainerId",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.containerId = :containerId"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.containerId = :containerId"),
   @NamedQuery(name = "YarnContainersLogs.findByStart",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.start = :start"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.start = :start"),
   @NamedQuery(name = "YarnContainersLogs.findByStop",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.stop = :stop"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.stop = :stop"),
   @NamedQuery(name = "YarnContainersLogs.findByExitStatus",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.exitStatus = :exitStatus"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.exitStatus = :exitStatus"),
   @NamedQuery(name = "YarnContainersLogs.findByPrice",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.price = :price"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.price = :price"),
   @NamedQuery(name = "YarnContainersLogs.findByVcores",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.vcores = :vcores"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.vcores = :vcores"),
   @NamedQuery(name = "YarnContainersLogs.findByGpus",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.gpus = :gpus"),
+      = "SELECT y FROM YarnContainersLog y WHERE y.gpus = :gpus"),
   @NamedQuery(name = "YarnContainersLogs.findByMb",
-      query = "SELECT y FROM YarnContainersLogs y WHERE y.mb = :mb"),
-  @NamedQuery(name = "YarnContainersLogs.findByNodeId",
-      query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.nodeId = :nodeId"),
+      query = "SELECT y FROM YarnContainersLog y WHERE y.mb = :mb"),
   @NamedQuery(name = "YarnContainersLogs.findRunningOnGpu",
       query
-      = "SELECT y FROM YarnContainersLogs y WHERE y.gpus <> 0 and y.exitStatus = -201")})
+      = "SELECT y FROM YarnContainersLog y WHERE y.gpus <> 0 and y.exitStatus = -201")})
 public class YarnContainersLog implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -99,9 +96,9 @@ public class YarnContainersLog implements Serializable {
   @Basic(optional = false)
   @NotNull
   @Column(name = "start")
-  private long start;
+  private Long start;
   @Column(name = "stop")
-  private long stop;
+  private Long stop;
   @Column(name = "exit_status")
   private Integer exitStatus;
   @Column(name = "price")
@@ -111,13 +108,7 @@ public class YarnContainersLog implements Serializable {
   @Column(name = "gpus")
   private Integer gpus;
   @Column(name = "mb")
-  private long mb;
-  @Basic(optional = false)
-  @NotNull
-  @Size(min = 1,
-      max = 255)
-  @Column(name = "node_id")
-  private String nodeId;
+  private Long mb;
 
   public YarnContainersLog() {
   }
@@ -126,10 +117,9 @@ public class YarnContainersLog implements Serializable {
     this.containerId = containerId;
   }
 
-  public YarnContainersLog(String containerId, long start, String nodeId) {
+  public YarnContainersLog(String containerId, long start) {
     this.containerId = containerId;
     this.start = start;
-    this.nodeId = nodeId;
   }
 
   public String getContainerId() {
@@ -140,11 +130,11 @@ public class YarnContainersLog implements Serializable {
     this.containerId = containerId;
   }
 
-  public long getStart() {
+  public Long getStart() {
     return start;
   }
 
-  public void setStart(long start) {
+  public void setStart(Long start) {
     this.start = start;
   }
 
@@ -152,7 +142,7 @@ public class YarnContainersLog implements Serializable {
     return stop;
   }
 
-  public void setStop(long stop) {
+  public void setStop(Long stop) {
     this.stop = stop;
   }
 
@@ -188,20 +178,12 @@ public class YarnContainersLog implements Serializable {
     this.gpus = gpus;
   }
 
-  public long getMb() {
+  public Long getMb() {
     return mb;
   }
 
-  public void setMb(long mb) {
+  public void setMb(Long mb) {
     this.mb = mb;
-  }
-
-  public String getNodeId() {
-    return nodeId;
-  }
-
-  public void setNodeId(String nodeId) {
-    this.nodeId = nodeId;
   }
 
   @Override
@@ -227,7 +209,7 @@ public class YarnContainersLog implements Serializable {
 
   @Override
   public String toString() {
-    return "io.hops.hopsworks.common.dao.yarn.containers.YarnContainersLogs[ containerId=" + containerId + " ]";
+    return "YarnContainersLogs[ containerId=" + containerId + " ]";
   }
   
 }

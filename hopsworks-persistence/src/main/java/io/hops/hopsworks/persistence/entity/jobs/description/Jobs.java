@@ -81,7 +81,7 @@ import java.util.Date;
  * declare the @DiscriminatorValue annotation.
  */
 @Entity
-@Table(name = "hopsworks.jobs")
+@Table(name = "jobs", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Jobs.findAll",

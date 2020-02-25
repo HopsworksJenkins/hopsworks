@@ -57,7 +57,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import io.hops.hopsworks.persistence.entity.hdfs.inode.Inode;
 
 @Entity
-@Table(name = "hopsworks.meta_inode_basic_metadata")
+@Table(name = "meta_inode_basic_metadata", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "InodeBasicMetadata.findAll",

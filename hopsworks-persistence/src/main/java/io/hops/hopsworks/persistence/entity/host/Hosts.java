@@ -62,7 +62,7 @@ import io.hops.hopsworks.persistence.entity.util.FormatUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
-@Table(name = "hopsworks.hosts")
+@Table(name = "hosts", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Hosts.findByCondaEnabled",

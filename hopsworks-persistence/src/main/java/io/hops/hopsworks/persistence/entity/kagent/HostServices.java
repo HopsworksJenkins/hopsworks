@@ -60,7 +60,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
-@Table(name = "hopsworks.host_services")
+@Table(name = "host_services", catalog = "hopsworks")
 @NamedQueries({
   @NamedQuery(name = "HostServices.findAll", query = "SELECT r from HostServices r"),
   @NamedQuery(name = "HostServices.findGroups", query = "SELECT DISTINCT r.group FROM HostServices r"),

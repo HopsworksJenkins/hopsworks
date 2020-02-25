@@ -53,7 +53,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 @Entity
-@Table(name = "hopsworks.files_to_remove")
+@Table(name = "files_to_remove", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "FilesToRemove.findAll",

@@ -66,7 +66,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import io.hops.hopsworks.persistence.entity.hdfs.inode.Inode;
 
 @Entity
-@Table(name = "hopsworks.meta_templates")
+@Table(name = "meta_templates", catalog = "hopsworks")
 @XmlRootElement
 @NamedQueries({
   @NamedQuery(name = "Template.findAll",
