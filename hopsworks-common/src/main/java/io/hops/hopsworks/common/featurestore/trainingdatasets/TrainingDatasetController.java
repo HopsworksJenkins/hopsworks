@@ -19,6 +19,7 @@ package io.hops.hopsworks.common.featurestore.trainingdatasets;
 import com.google.common.base.Strings;
 import io.hops.hopsworks.common.dao.dataset.Dataset;
 import io.hops.hopsworks.common.dao.featurestore.Featurestore;
+import io.hops.hopsworks.common.dao.featurestore.jobs.FeaturestoreJob;
 import io.hops.hopsworks.common.dao.featurestore.storageconnector.hopsfs.FeaturestoreHopsfsConnector;
 import io.hops.hopsworks.common.dao.featurestore.storageconnector.s3.FeaturestoreS3Connector;
 import io.hops.hopsworks.common.dao.featurestore.trainingdataset.TrainingDataset;
@@ -34,8 +35,8 @@ import io.hops.hopsworks.common.dataset.DatasetController;
 import io.hops.hopsworks.common.featurestore.FeaturestoreConstants;
 import io.hops.hopsworks.common.featurestore.FeaturestoreFacade;
 import io.hops.hopsworks.common.featurestore.feature.FeaturestoreFeatureController;
-import io.hops.hopsworks.common.featurestore.jobs.FeaturestoreJobController;
 import io.hops.hopsworks.common.featurestore.jobs.FeaturestoreJobDTO;
+import io.hops.hopsworks.common.featurestore.jobs.FeaturestoreJobFacade;
 import io.hops.hopsworks.common.featurestore.statistics.FeaturestoreStatisticController;
 import io.hops.hopsworks.common.featurestore.storageconnectors.hopsfs.FeaturestoreHopsfsConnectorController;
 import io.hops.hopsworks.common.featurestore.storageconnectors.hopsfs.FeaturestoreHopsfsConnectorFacade;
@@ -96,7 +97,7 @@ public class TrainingDatasetController {
   @EJB
   private ExternalTrainingDatasetFacade externalTrainingDatasetFacade;
   @EJB
-  private FeaturestoreJobController featurestoreJobController;
+  private FeaturestoreJobFacade featurestoreJobFacade;
   @EJB
   private FeaturestoreInputValidation featurestoreInputValidation;
   @EJB
@@ -279,7 +280,7 @@ public class TrainingDatasetController {
     List<Jobs> jobs = getJobs(trainingDatasetDTO.getJobs(), featurestore.getProject());
     
     //Store jobs
-    featurestoreJobController.insertJobs(trainingDataset, jobs);
+    featurestoreJobFacade.insertJobs(trainingDataset, jobs);
     
     return convertTrainingDatasetToDTO(trainingDataset);
   }
@@ -477,11 +478,13 @@ public class TrainingDatasetController {
     //Get jobs
     List<Jobs> jobs = getJobs(trainingDatasetDTO.getJobs(), featurestore.getProject());
     //Store jobs
-    featurestoreJobController.insertJobs(trainingDataset, jobs);
-    
+    featurestoreJobFacade.insertJobs(trainingDataset, jobs);
+    List<FeaturestoreJob> updatedJobsList = featurestoreJobFacade.getByTrainingDataset(trainingDataset);
+
     // Update metadata
     trainingDataset.setDescription(trainingDatasetDTO.getDescription());
     TrainingDataset updatedTrainingDataset = trainingDatasetFacade.updateTrainingDatasetMetadata(trainingDataset);
+    trainingDataset.setJobs(updatedJobsList);
 
     return convertTrainingDatasetToDTO(updatedTrainingDataset);
   }
