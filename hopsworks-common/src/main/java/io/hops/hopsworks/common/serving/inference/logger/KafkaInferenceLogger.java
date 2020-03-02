@@ -21,6 +21,7 @@ import com.twitter.bijection.avro.GenericAvroCodecs;
 import io.hops.hopsworks.common.dao.kafka.KafkaConst;
 import io.hops.hopsworks.common.dao.project.Project;
 import io.hops.hopsworks.common.dao.serving.Serving;
+import io.hops.hopsworks.common.kafka.KafkaBrokers;
 import io.hops.hopsworks.common.security.CertificateMaterializer;
 import io.hops.hopsworks.common.util.HopsUtils;
 import io.hops.hopsworks.common.util.Settings;
@@ -55,6 +56,8 @@ public class KafkaInferenceLogger implements InferenceLogger {
   private Settings settings;
   @EJB
   private CertificateMaterializer certificateMaterializer;
+  @EJB
+  private KafkaBrokers kafkaBrokers;
 
   public static final String SERVING_MANAGER_USERNAME = "srvmanager";
   private Properties props;
@@ -63,7 +66,7 @@ public class KafkaInferenceLogger implements InferenceLogger {
   public void init() {
     // Setup default properties
     props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, settings.getKafkaBrokersStr());
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers.getKafkaBrokersString());
     props.put(ProducerConfig.CLIENT_ID_CONFIG, "KafkaServing");
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
         StringSerializer.class.getName());
