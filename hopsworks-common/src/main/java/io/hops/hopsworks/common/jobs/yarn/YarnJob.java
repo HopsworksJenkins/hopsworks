@@ -74,6 +74,7 @@ public abstract class YarnJob extends HopsJob {
 
   protected final String jobUser;
   protected Settings settings;
+  protected String kafkaBrokersString;
   
 
   /**
@@ -91,7 +92,7 @@ public abstract class YarnJob extends HopsJob {
    */
   public YarnJob(Jobs job, AsynchronousJobExecutor services,
       Users user, String jobUser, String hadoopDir, YarnJobsMonitor jobsMonitor,
-      Settings settings) {
+      Settings settings, String kafkaBrokersString) {
     super(job, services, user, hadoopDir, jobsMonitor);
     if (!(job.getJobConfig() instanceof YarnJobConfiguration)) {
       throw new IllegalArgumentException(
@@ -103,6 +104,7 @@ public abstract class YarnJob extends HopsJob {
     this.projectLocalResources = new ArrayList<>();
     this.jobUser = jobUser;
     this.settings = settings;
+    this.kafkaBrokersString = kafkaBrokersString;
   }
 
   public final void setStdOutFinalDestination(String stdOutFinalDestination) {
