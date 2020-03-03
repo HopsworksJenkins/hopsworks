@@ -55,6 +55,7 @@ import io.hops.hopsworks.common.jobs.AsynchronousJobExecutor;
 import io.hops.hopsworks.common.jobs.configuration.JobType;
 import io.hops.hopsworks.common.jobs.yarn.YarnJobsMonitor;
 import io.hops.hopsworks.common.jupyter.JupyterController;
+import io.hops.hopsworks.common.kafka.KafkaBrokers;
 import io.hops.hopsworks.common.util.Settings;
 import io.hops.hopsworks.exceptions.GenericException;
 import io.hops.hopsworks.exceptions.JobException;
@@ -97,6 +98,8 @@ public class SparkController {
   private JupyterController jupyterController;
   @EJB
   private DistributedFsService dfs;
+  @EJB
+  private KafkaBrokers kafkaBrokers;
 
   /**
    * Start the Spark job as the given user.
@@ -141,8 +144,8 @@ public class SparkController {
           @Override
           public SparkJob run() {
             return new SparkJob(job, submitter, user, settings.getHadoopSymbolicLinkDir(),
-              job.getProject().getName() + "__"
-                + user.getUsername(), jobsMonitor, settings);
+              job.getProject().getName() + "__" + user.getUsername(), jobsMonitor, settings,
+                kafkaBrokers.getKafkaBrokersString());
           }
         });
       } catch (InterruptedException ex) {
