@@ -39,10 +39,13 @@
 
 package io.hops.hopsworks.common.hive;
 
+import com.logicalclocks.servicediscoverclient.exceptions.ServiceDiscoveryException;
+import com.logicalclocks.servicediscoverclient.service.Service;
 import io.hops.hopsworks.common.dao.dataset.Dataset;
 import io.hops.hopsworks.common.dao.dataset.DatasetFacade;
 import io.hops.hopsworks.common.dao.dataset.DatasetType;
 import io.hops.hopsworks.common.dao.featurestore.Featurestore;
+import io.hops.hopsworks.common.hosts.ServiceDiscoveryController;
 import io.hops.hopsworks.common.provenance.core.HopsFSProvenanceController;
 import io.hops.hopsworks.common.dao.hdfs.inode.Inode;
 import io.hops.hopsworks.common.hdfs.inode.InodeController;
@@ -100,6 +103,8 @@ public class HiveController {
   private ActivityFacade activityFacade;
   @EJB
   private HopsFSProvenanceController fsProvenanceCtrl;
+  @EJB
+  private ServiceDiscoveryController serviceDiscoveryController;
   
   private final static String driver = "org.apache.hive.jdbc.HiveDriver";
   private final static Logger logger = Logger.getLogger(HiveController.class.getName());
@@ -117,9 +122,9 @@ public class HiveController {
     }
   }
 
-  private void initConnection() throws SQLException {
+  private void initConnection() throws SQLException, ServiceDiscoveryException {
     // Create connection url
-    String hiveEndpoint = settings.getHiveServerHostName(false);
+    String hiveEndpoint = getHiveServerInternalEndpoint();
     jdbcString = "jdbc:hive2://" + hiveEndpoint + "/default;" +
       "auth=noSasl;ssl=true;twoWay=true;" +
       "sslTrustStore=" + bhcs.getSuperTrustStorePath() + ";" +
@@ -236,7 +241,7 @@ public class HiveController {
    */
   @TransactionAttribute(TransactionAttributeType.NEVER)
   public void createDatabase(String dbName, String dbComment)
-      throws SQLException {
+      throws SQLException, ServiceDiscoveryException {
     if (conn == null || conn.isClosed()) {
       initConnection();
     }
@@ -285,4 +290,19 @@ public class HiveController {
     return new Path(settings.getHiveWarehouse(), dbName.toLowerCase() + ".db");
   }
 
+  @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+  public String getHiveServerExternalEndpoint() throws ServiceDiscoveryException {
+    return getHiveServerEndpoint(ServiceDiscoveryController.SERVICE.HIVE_SERVER_PLAIN);
+  }
+  
+  @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+  public String getHiveServerInternalEndpoint() throws ServiceDiscoveryException {
+    return getHiveServerEndpoint(ServiceDiscoveryController.SERVICE.HIVE_SERVER_TLS);
+  }
+  
+  private String getHiveServerEndpoint(ServiceDiscoveryController.SERVICE service) throws ServiceDiscoveryException {
+    Service hive = serviceDiscoveryController
+        .getAnyAddressOfServiceWithDNS(service);
+    return hive.getAddress() + ":" + hive.getPort();
+  }
 }

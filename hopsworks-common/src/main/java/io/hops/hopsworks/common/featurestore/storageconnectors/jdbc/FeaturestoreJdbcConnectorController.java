@@ -17,11 +17,13 @@
 package io.hops.hopsworks.common.featurestore.storageconnectors.jdbc;
 
 import com.google.common.base.Strings;
+import com.logicalclocks.servicediscoverclient.exceptions.ServiceDiscoveryException;
 import io.hops.hopsworks.common.dao.featurestore.Featurestore;
 import io.hops.hopsworks.common.dao.featurestore.storageconnector.jdbc.FeaturestoreJdbcConnector;
 import io.hops.hopsworks.common.featurestore.FeaturestoreConstants;
 import io.hops.hopsworks.common.featurestore.storageconnectors.FeaturestoreStorageConnectorDTO;
 import io.hops.hopsworks.common.featurestore.storageconnectors.FeaturestoreStorageConnectorType;
+import io.hops.hopsworks.common.hive.HiveController;
 import io.hops.hopsworks.common.util.Settings;
 import io.hops.hopsworks.exceptions.FeaturestoreException;
 import io.hops.hopsworks.restutils.RESTCodes;
@@ -42,6 +44,8 @@ public class FeaturestoreJdbcConnectorController {
   private FeaturestoreJdbcConnectorFacade featurestoreJdbcConnectorFacade;
   @EJB
   private Settings settings;
+  @EJB
+  private HiveController hiveController;
   
   
   /**
@@ -119,17 +123,23 @@ public class FeaturestoreJdbcConnectorController {
    */
   public void createDefaultJdbcConnectorForOfflineFeaturestore(Featurestore featurestore, String databaseName,
     String description) throws FeaturestoreException {
-    String hiveEndpoint = settings.getHiveServerHostName(false);
-    String connectionString = "jdbc:hive2://" + hiveEndpoint + "/" + databaseName + ";" +
-      "auth=noSasl;ssl=true;twoWay=true;";
-    String arguments = "sslTrustStore,trustStorePassword,sslKeyStore,keyStorePassword";
-    String name = databaseName;
-    FeaturestoreJdbcConnectorDTO featurestoreJdbcConnectorDTO = new FeaturestoreJdbcConnectorDTO();
-    featurestoreJdbcConnectorDTO.setName(name);
-    featurestoreJdbcConnectorDTO.setDescription(description);
-    featurestoreJdbcConnectorDTO.setConnectionString(connectionString);
-    featurestoreJdbcConnectorDTO.setArguments(arguments);
-    createFeaturestoreJdbcConnector(featurestore,featurestoreJdbcConnectorDTO);
+    try {
+      String hiveEndpoint = hiveController.getHiveServerInternalEndpoint();
+      String connectionString = "jdbc:hive2://" + hiveEndpoint + "/" + databaseName + ";" +
+          "auth=noSasl;ssl=true;twoWay=true;";
+      String arguments = "sslTrustStore,trustStorePassword,sslKeyStore,keyStorePassword";
+      String name = databaseName;
+      FeaturestoreJdbcConnectorDTO featurestoreJdbcConnectorDTO = new FeaturestoreJdbcConnectorDTO();
+      featurestoreJdbcConnectorDTO.setName(name);
+      featurestoreJdbcConnectorDTO.setDescription(description);
+      featurestoreJdbcConnectorDTO.setConnectionString(connectionString);
+      featurestoreJdbcConnectorDTO.setArguments(arguments);
+      createFeaturestoreJdbcConnector(featurestore, featurestoreJdbcConnectorDTO);
+    } catch (ServiceDiscoveryException ex) {
+      throw new FeaturestoreException(RESTCodes.FeaturestoreErrorCode.JDBC_CONNECTOR_NOT_FOUND,
+          Level.SEVERE, "Could not create Hive connection string",
+          ex.getMessage(), ex);
+    }
   }
   
   /**
