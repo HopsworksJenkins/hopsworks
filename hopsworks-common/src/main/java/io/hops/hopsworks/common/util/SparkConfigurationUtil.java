@@ -155,6 +155,8 @@ public class SparkConfigurationUtil extends ConfigurationUtil {
       HopsUtils.IGNORE);
     addToSparkEnvironment(sparkProps, "DOMAIN_CA_TRUSTSTORE_PEM",
       settings.getSparkConfDir() + File.separator + Settings.DOMAIN_CA_TRUSTSTORE_PEM, HopsUtils.IGNORE);
+    addToSparkEnvironment(sparkProps, "SERVICE_DISCOVERY_DOMAIN", settings.getServiceDiscoveryDomain(),
+        HopsUtils.IGNORE);
     addLibHdfsOpts(userSparkProperties, settings, sparkProps, sparkJobConfiguration);
   
     //If DynamicExecutors are not enabled, set the user defined number

@@ -45,7 +45,8 @@ public class ServiceDiscoveryController {
     SPARK_HISTORY_SERVER("sparkhistoryserver"),
     HTTP_RESOURCEMANAGER("http.resourcemanager"),
     HIVE_SERVER_PLAIN("hiveserver2-plain.hive"),
-    HIVE_SERVER_TLS("hiveserver2-tls.hive");
+    HIVE_SERVER_TLS("hiveserver2-tls.hive"),
+    RPC_NAMENODE("rpc.namenode");
     
     private String name;
     SERVICE(String name) {
@@ -68,7 +69,7 @@ public class ServiceDiscoveryController {
     if (serviceName.endsWith(".")) {
       serviceName = serviceName.substring(0, serviceName.length() - 1);
     }
-    return String.format(CONSUL_SERVICE_TEMPLATE, serviceName, settings.getConsulDomain());
+    return String.format(CONSUL_SERVICE_TEMPLATE, serviceName, settings.getServiceDiscoveryDomain());
   }
   
   @Lock(LockType.READ)
