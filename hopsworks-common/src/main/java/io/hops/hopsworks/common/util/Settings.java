@@ -39,7 +39,6 @@
 package io.hops.hopsworks.common.util;
 
 import com.google.common.base.Splitter;
-import io.hops.hopsworks.common.dao.kafka.KafkaConst;
 import io.hops.hopsworks.common.hosts.ServiceDiscoveryController;
 import io.hops.hopsworks.persistence.entity.project.Project;
 import io.hops.hopsworks.common.dao.user.UserFacade;
@@ -58,12 +57,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.EJB;
@@ -246,7 +240,7 @@ public class Settings implements Serializable {
   private static final String VARIABLE_ALERT_EMAIL_ADDRS = "alert_email_addrs";
   private static final String VARIABLE_FIRST_TIME_LOGIN = "first_time_login";
   private static final String VARIABLE_CERTIFICATE_USER_VALID_DAYS = "certificate_user_valid_days";
-  private static final String VARIABLE_CONSUL_DOMAIN = "consul_domain";
+  private static final String VARIABLE_SERVICE_DISCOVERY_DOMAIN = "service_discovery_domain";
 
   private static final String VARIABLE_ZOOKEEPER_VERSION = "zookeeper_version";
   private static final String VARIABLE_INFLUXDB_VERSION = "influxdb_version";
@@ -535,7 +529,7 @@ public class Settings implements Serializable {
       CERTS_DIR = setDirVar(VARIABLE_CERTS_DIRS, CERTS_DIR);
       SUDOERS_DIR = setDirVar(VARIABLE_SUDOERS_DIR, SUDOERS_DIR);
       CERTIFICATE_USER_VALID_DAYS = setStrVar(VARIABLE_CERTIFICATE_USER_VALID_DAYS, CERTIFICATE_USER_VALID_DAYS);
-      CONSUL_DOMAIN = setStrVar(VARIABLE_CONSUL_DOMAIN, CONSUL_DOMAIN);
+      SERVICE_DISCOVERY_DOMAIN = setStrVar(VARIABLE_SERVICE_DISCOVERY_DOMAIN, SERVICE_DISCOVERY_DOMAIN);
       NDB_DIR = setDirVar(VARIABLE_NDB_DIR, NDB_DIR);
       AIRFLOW_DIR = setDirVar(VARIABLE_AIRFLOW_DIR, AIRFLOW_DIR);
       String elasticIps = setStrVar(VARIABLE_ELASTIC_IP,
@@ -1553,11 +1547,11 @@ public class Settings implements Serializable {
     return CERTIFICATE_USER_VALID_DAYS;
   }
 
-
-  private String CONSUL_DOMAIN = "consul";
-  public synchronized String getConsulDomain() {
+  
+  private String SERVICE_DISCOVERY_DOMAIN = "consul";
+  public synchronized String getServiceDiscoveryDomain() {
     checkCache();
-    return CONSUL_DOMAIN;
+    return SERVICE_DISCOVERY_DOMAIN;
   }
 
   // Oozie

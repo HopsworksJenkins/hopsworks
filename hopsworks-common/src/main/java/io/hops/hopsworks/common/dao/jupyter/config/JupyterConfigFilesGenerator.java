@@ -114,7 +114,7 @@ public class JupyterConfigFilesGenerator {
   }
   
   public JupyterPaths generateConfiguration(Project project, String secretConfig, String hdfsUser,
-    String nameNodeEndpoint, JupyterSettings js, Integer port, String allowOrigin)
+    JupyterSettings js, Integer port, String allowOrigin)
     throws ServiceException {
     boolean newDir = false;
     
@@ -122,8 +122,7 @@ public class JupyterConfigFilesGenerator {
     
     try {
       newDir = createJupyterDirs(jp);
-      createConfigFiles(jp, hdfsUser, project, nameNodeEndpoint,
-        port, js, allowOrigin);
+      createConfigFiles(jp, hdfsUser, project, port, js, allowOrigin);
     } catch (Exception e) {
       if (newDir) { // if the folder was newly created delete it
         removeProjectUserDirRecursive(jp);
@@ -208,13 +207,12 @@ public class JupyterConfigFilesGenerator {
     }
   }
   
-  public void createJupyterNotebookConfig(Writer out, Project project, String nameNodeEndpoint, int port,
-      JupyterSettings js, String hdfsUser, String pythonKernelName, String certsDir, String allowOrigin)
-        throws IOException, ServiceException {
-    String[] nn = nameNodeEndpoint.split(":");
-    String nameNodeIp = nn[0];
-    String nameNodePort = nn[1];
-  
+  public void createJupyterNotebookConfig(Writer out, Project project, int port,
+      JupyterSettings js, String hdfsUser, String certsDir, String allowOrigin)
+        throws IOException, ServiceException, ServiceDiscoveryException {
+    Service namenode = serviceDiscoveryController
+        .getAnyAddressOfServiceWithDNS(ServiceDiscoveryController.SERVICE.RPC_NAMENODE);
+    
     String remoteGitURL = "";
     String apiKey = "";
     if (js.isGitBackend() && js.getGitConfig() != null) {
@@ -224,8 +222,8 @@ public class JupyterConfigFilesGenerator {
     JupyterContentsManager jcm = jupyterNbVCSController.getJupyterContentsManagerClass(remoteGitURL);
     JupyterNotebookConfigTemplate template = JupyterNotebookConfigTemplateBuilder.newBuilder()
         .setProject(project)
-        .setNamenodeIp(nameNodeIp)
-        .setNamenodePort(nameNodePort)
+        .setNamenodeIp(namenode.getAddress())
+        .setNamenodePort(String.valueOf(namenode.getPort()))
         .setContentsManager(jcm.getClassName())
         .setHopsworksEndpoint(settings.getRestEndpoint())
         .setElasticEndpoint(settings.getElasticEndpoint())
@@ -243,6 +241,7 @@ public class JupyterConfigFilesGenerator {
         .setFlinkConfDirectory(settings.getFlinkConfDir())
         .setRequestsVerify(settings.getRequestsVerify())
         .setDomainCATruststorePem(settings.getSparkConfDir() + File.separator + Settings.DOMAIN_CA_TRUSTSTORE_PEM)
+        .setServiceDiscoveryDomain(settings.getServiceDiscoveryDomain())
         .build();
     Map<String, Object> dataModel = new HashMap<>(1);
     dataModel.put("conf", template);
@@ -316,8 +315,8 @@ public class JupyterConfigFilesGenerator {
 
   // returns true if one of the conf files were created anew 
   private void createConfigFiles(JupyterPaths jp, String hdfsUser, Project project,
-      String nameNodeEndpoint, Integer port, JupyterSettings js, String allowOrigin)
-      throws IOException, ServiceException {
+      Integer port, JupyterSettings js, String allowOrigin)
+      throws IOException, ServiceException, ServiceDiscoveryException {
     String confDirPath = jp.getConfDirPath();
     String kernelsDir = jp.getKernelsDir();
     String certsDir = jp.getCertificatesDir();
@@ -338,8 +337,7 @@ public class JupyterConfigFilesGenerator {
       }
   
       try (Writer out = new FileWriter(jupyter_config_file, false)) {
-        createJupyterNotebookConfig(out, project, nameNodeEndpoint, port, js, hdfsUser,
-            pythonKernelName, certsDir, allowOrigin);
+        createJupyterNotebookConfig(out, project, port, js, hdfsUser, certsDir, allowOrigin);
       }
     }
     
