@@ -1341,66 +1341,6 @@ angular.module('hopsWorksApp')
                 });
                 return modalInstance.result;
             },
-            viewFeaturegroupInfo: function (size, projectId, featuregroup, featurestore, settings) {
-                var modalInstance = $uibModal.open({
-                    templateUrl: 'views/featuregroupViewInfo.html',
-                    controller: 'featuregroupViewInfoCtrl as featuregroupViewInfoCtrl',
-                    size: size,
-                    resolve: {
-                        auth: ['$q','AuthGuardService',
-                            function ($q, AuthGuardService) {
-                                return AuthGuardService.guardSession($q).then(
-                                    function(success){
-                                    }, function (error) {
-                                        return $q.reject(error)
-                                    });
-                            }],
-                        projectId: function () {
-                            return projectId;
-                        },
-                        featuregroup: function () {
-                            return featuregroup;
-                        },
-                        featurestore: function () {
-                            return featurestore;
-                        },
-                        settings: function () {
-                            return settings;
-                        }
-                    }
-                });
-                return modalInstance.result;
-            },
-            viewTrainingDatasetInfo: function (size, projectId, trainingDataset, featurestore, settings) {
-                var modalInstance = $uibModal.open({
-                    templateUrl: 'views/trainingDatasetViewInfo.html',
-                    controller: 'trainingDatasetViewInfoCtrl as trainingDatasetViewInfoCtrl',
-                    size: size,
-                    resolve: {
-                        auth: ['$q','AuthGuardService',
-                            function ($q, AuthGuardService) {
-                                return AuthGuardService.guardSession($q).then(
-                                    function(success){
-                                    }, function (error) {
-                                        return $q.reject(error)
-                                    });
-                            }],
-                        projectId: function () {
-                            return projectId;
-                        },
-                        trainingDataset: function () {
-                            return trainingDataset;
-                        },
-                        featurestore: function () {
-                            return featurestore;
-                        },
-                        settings: function () {
-                            return settings;
-                        }
-                    }
-                });
-                return modalInstance.result;
-            },
             selectFeatureType: function (size, online, settings) {
                 var modalInstance = $uibModal.open({
                     templateUrl: 'views/selectFeatureType.html',
