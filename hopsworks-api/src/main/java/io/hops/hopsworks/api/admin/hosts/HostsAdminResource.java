@@ -69,7 +69,7 @@ public class HostsAdminResource {
   @EJB
   private HostServicesController hostServicesController;
   
-  @ApiParam(value = "Get all cluster nodes.")
+  @ApiOperation(value = "Get all cluster nodes.",  response = HostsDTO.class)
   @GET
   public Response getAllClusterNodes(@Context SecurityContext sc,
     @Context UriInfo uriInfo,
@@ -85,7 +85,7 @@ public class HostsAdminResource {
     return Response.ok().entity(dto).build();
   }
   
-  @ApiParam(value = "Get cluster node by hostname.")
+  @ApiOperation(value = "Get cluster node by hostname.", response = HostsDTO.class)
   @GET
   @Path("/{hostname}")
   public Response getClusterNode(@Context SecurityContext sc, @Context UriInfo uriInfo,
@@ -116,7 +116,7 @@ public class HostsAdminResource {
     return hostsController.addOrUpdateClusterNode(uriInfo, hostname, nodeToUpdate);
   }
   
-  @ApiOperation(value = "Get metadata of all services for a specified host.")
+  @ApiOperation(value = "Get metadata of all services for a specified host.", response = ServiceDTO.class)
   @GET
   @Path("/{hostname}/services")
   @Produces(MediaType.APPLICATION_JSON)
@@ -134,7 +134,7 @@ public class HostsAdminResource {
     return Response.ok().entity(dto).build();
   }
   
-  @ApiOperation(value = "Get metadata of a service.")
+  @ApiOperation(value = "Get metadata of a service.", response = ServiceDTO.class)
   @GET
   @Path("/{hostname}/services/{name}")
   @Produces(MediaType.APPLICATION_JSON)
