@@ -1910,7 +1910,7 @@ public class Settings implements Serializable {
   public static final String META_ID = "_id";
   public static final String META_DATA_NESTED_FIELD = "xattr";
   public static final String META_DATA_FIELDS = META_DATA_NESTED_FIELD + ".*";
-
+  
   //Filename conventions
   public static final String FILENAME_DISALLOWED_CHARS = " /\\?*:|'\"<>%()&;#öäåÖÅÄàáéèâîïüÜ@${}[]+~^$`";
   public static final String SUBDIR_DISALLOWED_CHARS = "/\\?*:|'\"<>%()&;#öäåÖÅÄàáéèâîïüÜ@${}[]+~^$`";
@@ -3689,4 +3689,6 @@ public class Settings implements Serializable {
     }
   }
   //------------------------------ END PROVENANCE --------------------------------------------//
+  public static final String FEATURESTORE_INDEX = "featurestore";
+  public static final String FEATURESTORE_PROJECT_ID_FIELD = "project_id";
 }
