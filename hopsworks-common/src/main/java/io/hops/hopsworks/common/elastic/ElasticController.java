@@ -239,10 +239,87 @@ public class ElasticController {
       return elasticHits;
     }
   
-    //we need to further check the status if it is a probelm with
+    //we need to further check the status if it is a problem with
     // elasticsearch rather than a bad query
     throw new ElasticException(RESTCodes.ElasticErrorCode.ELASTIC_QUERY_ERROR,
         Level.INFO,"Error while executing query, code: "+  response.status().getStatus());
+  }
+  
+  public List<ElasticHit> featurestoreSearch(String searchTerm) throws ElasticException, ServiceException {
+    RestHighLevelClient client = getClient();
+    //check if the indices are up and running
+    if (!this.indexExists(client, Settings.FEATURESTORE_INDEX)) {
+      throw new ServiceException(RESTCodes.ServiceErrorCode.ELASTIC_INDEX_NOT_FOUND,
+        Level.SEVERE, "index: " + Settings.FEATURESTORE_INDEX);
+    }
+  
+    SearchResponse response = executeFeaturestoreSearchQuery(client,
+      globalFeaturestoreSearchQuery(searchTerm.toLowerCase()));
+  
+    if (response.status().getStatus() == 200) {
+      //construct the response
+      List<ElasticHit> elasticHits = new LinkedList<>();
+      if (response.getHits().getHits().length > 0) {
+        SearchHit[] hits = response.getHits().getHits();
+        ElasticHit eHit;
+        for (SearchHit hit : hits) {
+          eHit = new ElasticHit(hit);
+          eHit.setLocalDataset(true);
+          elasticHits.add(eHit);
+        }
+      }
+      return elasticHits;
+    }
+  
+    //we need to further check the status if it is a problem with
+    // elasticsearch rather than a bad query
+    throw new ElasticException(RESTCodes.ElasticErrorCode.ELASTIC_QUERY_ERROR,
+      Level.INFO,"Error while executing query, code: "+  response.status().getStatus());
+  }
+  
+  public List<ElasticHit> featurestoreSearch(Integer projectId, String featurestoreName, String searchTerm)
+    throws ElasticException, ServiceException {
+    RestHighLevelClient client = getClient();
+    //check if the indices are up and running
+    if (!this.indexExists(client, Settings.FEATURESTORE_INDEX)) {
+      throw new ServiceException(RESTCodes.ServiceErrorCode.ELASTIC_INDEX_NOT_FOUND,
+        Level.SEVERE, "index: " + Settings.FEATURESTORE_INDEX);
+    }
+  
+    String dsName = featurestoreName;
+    Project project;
+    if (featurestoreName.contains(Settings.SHARED_FILE_SEPARATOR)) {
+      String[] sharedFeaturestore = featurestoreName.split(Settings.SHARED_FILE_SEPARATOR);
+      dsName = sharedFeaturestore[1];
+      project = projectFacade.findByName(sharedFeaturestore[0]);
+    } else {
+      project = projectFacade.find(projectId);
+    }
+  
+    Dataset dataset = datasetController.getByProjectAndDsName(project,null, dsName);
+  
+    SearchResponse response = executeFeaturestoreSearchQuery(client,
+      localFeaturestoreSearchQuery(dataset.getInodeId(), searchTerm.toLowerCase()));
+  
+    if (response.status().getStatus() == 200) {
+      //construct the response
+      List<ElasticHit> elasticHits = new LinkedList<>();
+      if (response.getHits().getHits().length > 0) {
+        SearchHit[] hits = response.getHits().getHits();
+        ElasticHit eHit;
+        for (SearchHit hit : hits) {
+          eHit = new ElasticHit(hit);
+          eHit.setLocalDataset(true);
+          elasticHits.add(eHit);
+        }
+      }
+      return elasticHits;
+    }
+  
+    //we need to further check the status if it is a problem with
+    // elasticsearch rather than a bad query
+    throw new ElasticException(RESTCodes.ElasticErrorCode.ELASTIC_QUERY_ERROR,
+      Level.INFO,"Error while executing query, code: "+  response.status().getStatus());
   }
 
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -429,6 +506,11 @@ public class ElasticController {
     return executeSearchQuery(client, Settings.META_INDEX, query);
   }
   
+  private SearchResponse executeFeaturestoreSearchQuery(RestHighLevelClient client, QueryBuilder query)
+    throws ServiceException {
+    return executeSearchQuery(client, Settings.FEATURESTORE_INDEX, query);
+  }
+  
   private SearchResponse executeSearchQuery(RestHighLevelClient client,
       String index, QueryBuilder query)
       throws ServiceException {
@@ -508,6 +590,35 @@ public class ElasticController {
         .must(datasetIdQuery)
         .must(onlyInodes)
         .must(query);
+    return cq;
+  }
+  
+  /**
+   * Local featurestore search.
+   * <p/>
+   * @param searchTerm
+   * @return
+   */
+  private QueryBuilder localFeaturestoreSearchQuery(long datasetInodeId, String searchTerm) {
+    QueryBuilder datasetIdQuery = termQuery(Settings.FEATURESTORE_DATASET_IID_FIELD, datasetInodeId);
+    QueryBuilder query = getNameDescriptionMetadataQuery(searchTerm);
+    
+    QueryBuilder cq = boolQuery()
+      .must(datasetIdQuery)
+      .must(query);
+    return cq;
+  }
+  
+  /**
+   * Global featurestore search.
+   * <p/>
+   * @param searchTerm
+   * @return
+   */
+  private QueryBuilder globalFeaturestoreSearchQuery(String searchTerm) {
+    QueryBuilder query = getNameDescriptionMetadataQuery(searchTerm);
+    
+    QueryBuilder cq = boolQuery().must(query);
     return cq;
   }
 
