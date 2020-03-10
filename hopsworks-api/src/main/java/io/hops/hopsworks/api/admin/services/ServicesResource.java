@@ -48,7 +48,7 @@ public class ServicesResource {
   @EJB
   private ServicesBuilder servicesBuilder;
 
-  @ApiOperation(value = "Get metadata of all services.")
+  @ApiOperation(value = "Get metadata of all services.", response = ServiceDTO.class)
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getAllServices(
@@ -64,11 +64,11 @@ public class ServicesResource {
     return Response.ok().entity(dto).build();
   }
   
-  @ApiOperation(value = "Get metadata of a service.")
+  @ApiOperation(value = "Get metadata of a service.", response = ServiceDTO.class)
   @GET
   @Path("/{name}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getService(@Context UriInfo uriInfo, @PathParam("name") String name) throws ServiceException {
+  public Response getService(@Context UriInfo uriInfo, @PathParam("name") String name) {
     ServiceDTO dto = servicesBuilder.buildItems(uriInfo, name);
     return Response.ok().entity(dto).build();
   }
