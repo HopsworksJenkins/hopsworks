@@ -24,6 +24,8 @@ angular.module('hopsWorksApp')
             self.fgFilter = "";
             self.versionFilter = "";
 
+            self.tgState = false;
+
             self.pageSize = 20;
 
             self.sortKey = "name";
