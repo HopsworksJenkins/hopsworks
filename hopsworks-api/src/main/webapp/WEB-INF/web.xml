@@ -135,6 +135,7 @@
     <servlet-name>GrafanaProxyServlet</servlet-name>
     <url-pattern>/grafana</url-pattern>
   </servlet-mapping>
+
   <!-- YARN UI proxy servlet -->
   <servlet>
     <servlet-name>YarnUIProxyServlet</servlet-name>
