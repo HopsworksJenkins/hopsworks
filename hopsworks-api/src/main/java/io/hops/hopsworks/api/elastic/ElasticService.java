@@ -163,6 +163,57 @@ public class ElasticService {
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK). entity(searchResults).build();
   }
   
+  /**
+   * Searches for content inside all featurestore. Hits 'featurestore' index
+   * <p/>
+   * @param searchTerm
+   * @param sc
+   * @return
+   */
+  @GET
+  @Path("globalfeaturestore/{searchTerm}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
+  public Response globalFeaturestoreSearch(
+    @PathParam("searchTerm") String searchTerm, @Context SecurityContext sc)
+    throws ServiceException, ElasticException {
+    
+    if (Strings.isNullOrEmpty(searchTerm)) {
+      throw new IllegalArgumentException("One or more required parameters were not provided.");
+    }
+    
+    GenericEntity<List<ElasticHit>> searchResults = new GenericEntity<List<ElasticHit>>(
+      elasticController.featurestoreSearch(searchTerm)) {};
+    return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK). entity(searchResults).build();
+  }
+  
+  /**
+   * Searches for content inside your local featurestore. Hits 'featurestore' index
+   * <p/>
+   * @param projectId
+   * @param searchTerm
+   * @param sc
+   * @return
+   */
+  @GET
+  @Path("localfeaturestore/{projectId}/{featurestoreName}/{searchTerm}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
+  public Response localFeaturestoreSearch(
+    @PathParam("projectId") Integer projectId,
+    @PathParam("featurestoreName") String featurestoreName,
+    @PathParam("searchTerm") String searchTerm, @Context SecurityContext sc)
+    throws ServiceException, ElasticException {
+    
+    if (Strings.isNullOrEmpty(searchTerm) || Strings.isNullOrEmpty(featurestoreName) || projectId == null) {
+      throw new IllegalArgumentException("One or more required parameters were not provided.");
+    }
+    
+    GenericEntity<List<ElasticHit>> searchResults = new GenericEntity<List<ElasticHit>>(
+      elasticController.featurestoreSearch(projectId, featurestoreName, searchTerm)) {};
+    return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK). entity(searchResults).build();
+  }
+  
   @ApiOperation( value = "Get a jwt token for elastic.")
   @GET
   @Path("jwt/{projectId}")
