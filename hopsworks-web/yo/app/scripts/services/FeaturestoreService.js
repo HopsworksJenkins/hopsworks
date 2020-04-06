@@ -179,9 +179,26 @@ angular.module('hopsWorksApp')
                         featurestore.featurestoreId + "/featuregroups/" + featuregroup.id + "/preview");
                 },
 
-                getFeaturegroupCustomMetadata: function(projectId, featurestore, featuregroup) {
+                getFeaturegroupTags: function(projectId, featurestore, featuregroup) {
                     return $http.get('/api/project/' + projectId + '/featurestores/' +
-                        featurestore.featurestoreId + "/featuregroups/" + featuregroup.id + "/xattrs");
+                        featurestore.featurestoreId + "/featuregroups/" + featuregroup.id + "/tags");
+                },
+
+                updateFeaturegroupTags: function(projectId, featurestore, featuregroup, json) {
+                    return $http.put('/api/project/' + projectId + '/featurestores/' +
+                        featurestore.featurestoreId + "/featuregroups/" + featuregroup.id + "/tags",
+                        JSON.stringify(json), {headers: {'Content-Type': 'application/json'}});
+                },
+
+                getTrainingDatasetTags: function(projectId, featurestore, td) {
+                    return $http.get('/api/project/' + projectId + '/featurestores/' +
+                        featurestore.featurestoreId + "/trainingdatasets/" + td.id + "/tags");
+                },
+
+                updateTrainingDatasetTags: function(projectId, featurestore, td, json) {
+                    return $http.put('/api/project/' + projectId + '/featurestores/' +
+                        featurestore.featurestoreId + "/trainingdatasets/" + td.id + "/tags",
+                        JSON.stringify(json), {headers: {'Content-Type': 'application/json'}});
                 },
 
                 /**
@@ -323,6 +340,15 @@ angular.module('hopsWorksApp')
                 writeUtilArgstoHdfs: function(projectId, utilArgsJson) {
                     return $http.post('/api/project/' + projectId + '/featurestores/util',
                         JSON.stringify(utilArgsJson), {headers: {'Content-Type': 'application/json'}});
+                },
+                /**
+                 * GET request for the tags that can be attached to featuregroups or training datasets
+                 *
+                 * @param query string for the request
+                 * @returns {HttpPromise}
+                 */
+                getTags: function(query) {
+                    return $http.get('/api/tags' + query);
                 }
             };
           }]);
