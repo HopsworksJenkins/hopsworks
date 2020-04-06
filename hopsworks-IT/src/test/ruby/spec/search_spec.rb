@@ -220,9 +220,9 @@ describe "On #{ENV['OS']}" do
       share_dataset_checked(project1, featurestore_name, project2[:projectname], "FEATURESTORE")
       #accept_dataset_checked(project2, "#{project1[:projectname]}::#{featurestore_name}", "FEATURESTORE")
       td_name = "#{project1[:projectname]}_Training_Datasets"
-      # request_access_by_name_type(project1, td_name, project2, "DATASET")
+      request_access_by_name_type(project1, td_name, project2, "DATASET")
       share_dataset_checked(project1, td_name, project2[:projectname], "DATASET")
-      accept_dataset_checked(project2, "#{project1[:projectname]}::#{td_name}", "DATASET")
+      #accept_dataset_checked(project2, "#{project1[:projectname]}::#{td_name}", "DATASET")
       fgs1 = featuregroups_setup(project1)
       fgs2 = featuregroups_setup(project2)
       tds1 = trainingdataset_setup(project1)
