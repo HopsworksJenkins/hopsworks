@@ -22,6 +22,12 @@ import io.hops.hopsworks.api.filter.Audience;
 import io.hops.hopsworks.api.filter.NoCacheResponse;
 import io.hops.hopsworks.api.filter.apiKey.ApiKeyRequired;
 import io.hops.hopsworks.api.jwt.JWTHelper;
+import io.hops.hopsworks.api.metadata.XAttrDTO;
+import io.hops.hopsworks.api.metadata.XAttrsBuilder;
+import io.hops.hopsworks.common.featurestore.tag.TrainingDatasetTagControllerIface;
+import io.hops.hopsworks.common.featurestore.utils.FeaturestoreUtils;
+import io.hops.hopsworks.common.hdfs.xattrs.XAttrsController;
+import io.hops.hopsworks.common.api.ResourceRequest;
 import io.hops.hopsworks.common.dao.user.activity.ActivityFacade;
 import io.hops.hopsworks.common.featurestore.FeaturestoreController;
 import io.hops.hopsworks.common.featurestore.FeaturestoreDTO;
@@ -29,6 +35,7 @@ import io.hops.hopsworks.common.featurestore.trainingdatasets.TrainingDatasetCon
 import io.hops.hopsworks.common.featurestore.trainingdatasets.TrainingDatasetDTO;
 import io.hops.hopsworks.exceptions.DatasetException;
 import io.hops.hopsworks.exceptions.FeaturestoreException;
+import io.hops.hopsworks.exceptions.MetadataException;
 import io.hops.hopsworks.exceptions.ProjectException;
 import io.hops.hopsworks.exceptions.ProvenanceException;
 import io.hops.hopsworks.jwt.annotation.JWTRequired;
@@ -48,6 +55,7 @@ import javax.ejb.EJB;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -63,8 +71,11 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A Stateless RESTful service for the training datasets in a featurestore on Hopsworks.
@@ -85,6 +96,14 @@ public class TrainingDatasetService {
   private ActivityFacade activityFacade;
   @EJB
   private JWTHelper jWTHelper;
+  @EJB
+  private XAttrsController xAttrsController;
+  @EJB
+  private XAttrsBuilder xAttrsBuilder;
+  @Inject
+  private TrainingDatasetTagControllerIface tagControllerIface;
+  @EJB
+  private FeaturestoreUtils featurestoreUtils;
 
   private Project project;
   private Featurestore featurestore;
@@ -305,6 +324,82 @@ public class TrainingDatasetService {
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.OK).entity(trainingDatasetDTOGenericEntity)
       .build();
   }
+
+  @ApiOperation( value = "Create or update tags for a training dataset", response = XAttrDTO.class)
+  @PUT
+  @Path("/{trainingdatasetid}/tags")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
+  @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
+  @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
+  public Response putTags(@Context SecurityContext sc, @Context UriInfo uriInfo,
+                              @PathParam("trainingdatasetid") Integer trainingdatasetid,
+                              String metaObj) throws FeaturestoreException, DatasetException, MetadataException {
+    verifyIdProvided(trainingdatasetid);
+    Users user = jWTHelper.getUserPrincipal(sc);
+
+    Response.Status status = Response.Status.OK;
+    if(tagControllerIface.createOrUpdate(project, user, featurestore, trainingdatasetid, metaObj)){
+      status = Response.Status.CREATED;
+    }
+
+    ResourceRequest resourceRequest =
+        new ResourceRequest(ResourceRequest.Name.XATTRS);
+    XAttrDTO dto = xAttrsBuilder.build(uriInfo, resourceRequest, project,
+        featurestore.getId(), trainingdatasetid, "tags");
+
+    UriBuilder builder = uriInfo.getAbsolutePathBuilder();
+    if(status == Response.Status.CREATED) {
+      return Response.created(builder.build()).entity(dto).build();
+    } else {
+      return Response.ok(builder.build()).entity(dto).build();
+    }
+  }
+
+  @ApiOperation( value = "Get all tags attached to a training dataset", response = XAttrDTO.class)
+  @GET
+  @Path("/{trainingdatasetid}/tags")
+  @Produces(MediaType.APPLICATION_JSON)
+  @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
+  @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
+  @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
+  public Response getTags(@Context SecurityContext sc,
+                                 @Context UriInfo uriInfo,
+                                 @PathParam("trainingdatasetid") Integer trainingdatasetid)
+      throws FeaturestoreException, DatasetException, MetadataException {
+    verifyIdProvided(trainingdatasetid);
+    Users user = jWTHelper.getUserPrincipal(sc);
+
+    Map<String, String> result = tagControllerIface.get(project, user, featurestore, trainingdatasetid);
+
+    Response.Status status = result.isEmpty() ?
+        Response.Status.NOT_FOUND: Response.Status.OK;
+    ResourceRequest resourceRequest =
+        new ResourceRequest(ResourceRequest.Name.XATTRS);
+    XAttrDTO dto = xAttrsBuilder.build(uriInfo, resourceRequest, project,
+        featurestore.getId(), trainingdatasetid, result);
+    return Response.status(status).entity(dto).build();
+  }
+
+  @ApiOperation( value = "Delete all attached tags to training dataset")
+  @DELETE
+  @Path("/{trainingdatasetid}/tags")
+  @Produces(MediaType.APPLICATION_JSON)
+  @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
+  @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
+  @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
+  public Response deleteTags(@Context SecurityContext sc, @PathParam("trainingdatasetid") Integer trainingdatasetid)
+      throws DatasetException, MetadataException, FeaturestoreException {
+    verifyIdProvided(trainingdatasetid);
+    Users user = jWTHelper.getUserPrincipal(sc);
+
+    Response.Status status = Response.Status.NOT_FOUND;
+    if(tagControllerIface.delete(project, user, featurestore, trainingdatasetid)) {
+      status = Response.Status.NO_CONTENT;
+    }
+    return Response.status(status).build();
+  }
   
   /**
    * Verify that the user id was provided as a path param
@@ -329,3 +424,4 @@ public class TrainingDatasetService {
     }
   }
 }
+
