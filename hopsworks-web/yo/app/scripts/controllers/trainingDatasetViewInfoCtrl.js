@@ -18,9 +18,9 @@
  * Controller for the Training Dataset-Info view
  */
 angular.module('hopsWorksApp')
-    .controller('trainingDatasetViewInfoCtrl', ['$scope', 'ProjectService',
-        'JobService', 'ModalService', 'StorageService', 'FeaturestoreService', '$location', 'growl',
-        function ($scope, ProjectService, JobService, ModalService, StorageService, FeaturestoreService, $location, growl) {
+    .controller('trainingDatasetViewInfoCtrl', ['$scope', 'FeaturestoreService', 'ProjectService',
+        'JobService', 'ModalService', 'StorageService', '$location', 'growl',
+        function ($scope, FeaturestoreService, ProjectService, JobService, ModalService, StorageService, $location, growl) {
 
             /**
              * Initialize controller state
@@ -33,11 +33,54 @@ angular.module('hopsWorksApp')
             self.trainingDatasets = null;
             self.featurestore = null;
             self.settings = null;
+            self.loadingTags = false;
             //State
             self.sizeWorking = false;
             self.size = "Not fetched"
             self.pythonCode = ""
             self.scalaCode = ""
+            self.attachedTags = {};
+
+            /**
+             * Get training dataset tags
+             */
+            self.fetchTags = function () {
+                self.loadingTags = true;
+                FeaturestoreService.getTrainingDatasetTags(self.projectId, self.featurestore, self.selectedTrainingDataset).then(
+                    function (success) {
+                        self.loadingTags = false;
+                        self.attachedTags = JSON.parse(success.data.items[0].value);
+                      },
+                    function (error) {
+                        self.attachedTags = {};
+                        self.loadingTags = false;
+                        if(error.status !== 404 && error.status !== 400) {
+                            if (typeof error.data.usrMsg !== 'undefined') {
+                                growl.error(error.data.usrMsg, {title: error.data.errorMsg, ttl: 8000});
+                            } else {
+                                growl.error("", {title: error.data.errorMsg, ttl: 8000});
+                            }
+                        }
+                    });
+            };
+
+            /**
+             * Save training dataset tags
+             */
+            self.saveTags = function() {
+                FeaturestoreService.updateTrainingDatasetTags(self.projectId, self.featurestore, self.selectedTrainingDataset, self.attachedTags).then(
+                    function (success) {
+                    },
+                    function (error) {
+                        if(error.status !== 404) {
+                            if (typeof error.data.usrMsg !== 'undefined') {
+                                growl.error(error.data.usrMsg, {title: error.data.errorMsg, ttl: 8000});
+                            } else {
+                                growl.error("", {title: error.data.errorMsg, ttl: 8000});
+                            }
+                        }
+                    });
+            }
 
             /**
              * Get the Python API code to retrieve the featuregroup
@@ -109,6 +152,7 @@ angular.module('hopsWorksApp')
                 self.pythonCode = self.getPythonCode();
                 self.scalaCode = self.getScalaCode();
                 self.fetchSize()
+                self.fetchTags();
             };
 
             /**
