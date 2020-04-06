@@ -216,9 +216,9 @@ describe "On #{ENV['OS']}" do
       project1 = create_project
       project2 = create_project
       featurestore_name = project1[:projectname].downcase + "_featurestore.db"
-      # request_access_by_name_type(project1, featurestore_name, project2, "FEATURESTORE")
+      request_access_by_name_type(project1, featurestore_name, project2, "FEATURESTORE")
       share_dataset_checked(project1, featurestore_name, project2[:projectname], "FEATURESTORE")
-      accept_dataset_checked(project2, "#{project1[:projectname]}::#{featurestore_name}", "FEATURESTORE")
+      #accept_dataset_checked(project2, "#{project1[:projectname]}::#{featurestore_name}", "FEATURESTORE")
       td_name = "#{project1[:projectname]}_Training_Datasets"
       # request_access_by_name_type(project1, td_name, project2, "DATASET")
       share_dataset_checked(project1, td_name, project2[:projectname], "DATASET")
