@@ -16,7 +16,8 @@
 package io.hops.hopsworks.common.util;
 
 import io.hops.hopsworks.common.provenance.core.dto.ProvCoreDTO;
-import io.hops.hopsworks.common.provenance.core.dto.ProvFeatureDTO;
+import io.hops.hopsworks.common.provenance.core.dto.ProvFeaturegroupDTO;
+import io.hops.hopsworks.common.provenance.core.dto.ProvTrainingDatasetDTO;
 import io.hops.hopsworks.common.provenance.core.dto.ProvTypeDTO;
 import io.hops.hopsworks.exceptions.GenericException;
 import io.hops.hopsworks.restutils.RESTCodes;
@@ -59,7 +60,9 @@ public class HopsworksJAXBContext {
         createContext(new Class[] {
           ProvCoreDTO.class,
           ProvTypeDTO.class,
-          ProvFeatureDTO.class
+          ProvFeaturegroupDTO.Base.class,
+          ProvFeaturegroupDTO.Featuregroup.class,
+          ProvTrainingDatasetDTO.class
         }, properties);
     } catch (JAXBException e) {
       e.printStackTrace();
