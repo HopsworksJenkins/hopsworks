@@ -15,6 +15,8 @@
  */
 package io.hops.hopsworks.common.provenance.core;
 
+import io.hops.hopsworks.common.featurestore.trainingdatasets.TrainingDatasetDTO;
+import io.hops.hopsworks.common.provenance.core.dto.ProvTrainingDatasetDTO;
 import io.hops.hopsworks.persistence.entity.dataset.Dataset;
 import io.hops.hopsworks.common.featurestore.feature.FeatureDTO;
 import io.hops.hopsworks.common.featurestore.featuregroup.FeaturegroupDTO;
@@ -26,7 +28,7 @@ import io.hops.hopsworks.common.hdfs.DistributedFileSystemOps;
 import io.hops.hopsworks.common.hdfs.DistributedFsService;
 import io.hops.hopsworks.common.hdfs.HdfsUsersController;
 import io.hops.hopsworks.common.hdfs.Utils;
-import io.hops.hopsworks.common.provenance.core.dto.ProvFeatureDTO;
+import io.hops.hopsworks.common.provenance.core.dto.ProvFeaturegroupDTO;
 import io.hops.hopsworks.common.provenance.core.dto.ProvDatasetDTO;
 import io.hops.hopsworks.common.provenance.core.dto.ProvCoreDTO;
 import io.hops.hopsworks.common.provenance.core.dto.ProvTypeDTO;
@@ -42,8 +44,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 @Stateless(name = "HopsFSProvenanceController")
@@ -86,31 +90,6 @@ public class HopsFSProvenanceController {
     } catch (IOException | GenericException e) {
       throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.FS_ERROR, Level.WARNING,
         "hopsfs - set xattr - prov core - error", "hopsfs - set xattr - prov core - error", e);
-    }
-  }
-  
-  private void setFeaturesXAttr(String path, List<FeatureDTO> features, DistributedFileSystemOps udfso)
-    throws ProvenanceException {
-    if(features == null) {
-      return;
-    }
-    List<ProvFeatureDTO> featuresDTO = fromFeatures(features);
-    try {
-      udfso.upsertXAttr(path, ProvXAttrs.PROV_XATTR_FEATURES, converter.marshal(featuresDTO).getBytes());
-    } catch (IOException | GenericException e) {
-      throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.FS_ERROR, Level.WARNING,
-        "hopsfs - set xattr - prov features - error", "hopsfs - set xattr - prov features - error", e);
-    }
-  }
-  
-  private void setFeaturesXAttr(String path, FeaturegroupDTO featuregroup, DistributedFileSystemOps udfso)
-    throws ProvenanceException {
-    List<ProvFeatureDTO> featuresDTO = fromFeatures(featuregroup);
-    try {
-      udfso.upsertXAttr(path, ProvXAttrs.PROV_XATTR_FEATURES, converter.marshal(featuresDTO).getBytes());
-    } catch (IOException | GenericException e) {
-      throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.FS_ERROR, Level.WARNING,
-        "hopsfs - set xattr - prov features - error", "hopsfs - set xattr - prov features - error", e);
     }
   }
   
@@ -252,11 +231,17 @@ public class HopsFSProvenanceController {
     throws ProvenanceException {
     String hdfsUsername = hdfsUsersController.getHdfsUserName(project, user);
     DistributedFileSystemOps udfso = dfs.getDfsOps(hdfsUsername);
-    
     try {
-      String featuregroupPath = Utils.getFeaturestorePath(project, settings)
+      String path = Utils.getFeaturestorePath(project, settings)
         + "/" + Utils.getFeaturegroupName(featuregroup.getName(), featuregroup.getVersion());
-      setFeaturesXAttr(featuregroupPath, featuregroup, udfso);
+      ProvFeaturegroupDTO.Featuregroup fg = fromFeaturegroup(featuregroup);
+      try {
+        udfso.upsertXAttr(path, ProvXAttrs.Featurestore.getFeaturestoreXAttrKey(),
+          converter.marshal(fg).getBytes());
+      } catch (IOException | GenericException e) {
+        throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.FS_ERROR, Level.WARNING,
+          "hopsfs - set xattr - featuregroup - error", "hopsfs - set xattr - featuregroup - error", e);
+      }
     } finally {
       if(udfso != null) {
         dfs.closeDfsClient(udfso);
@@ -264,12 +249,25 @@ public class HopsFSProvenanceController {
     }
   }
   
-  public void trainingDatasetAttachXAttr(Users user, Project project, String path, List<FeatureDTO> features)
+  public void trainingDatasetAttachXAttr(Users user, Project project, String path,
+    TrainingDatasetDTO trainingDatasetDTO)
     throws ProvenanceException {
     String hdfsUsername = hdfsUsersController.getHdfsUserName(project, user);
     DistributedFileSystemOps udfso = dfs.getDfsOps(hdfsUsername);
     try {
-      setFeaturesXAttr(path, features, udfso);
+      ProvTrainingDatasetDTO td = new ProvTrainingDatasetDTO(trainingDatasetDTO.getFeaturestoreId(),
+        trainingDatasetDTO.getDescription(), trainingDatasetDTO.getCreated(), trainingDatasetDTO.getCreator());
+      if(trainingDatasetDTO.getFeatures() != null) {
+        List<ProvFeaturegroupDTO.Base> featuresDTO = fromTrainingDataset(trainingDatasetDTO);
+        td.setFeatures(featuresDTO);
+      }
+      try {
+        udfso.upsertXAttr(path, ProvXAttrs.Featurestore.getFeaturestoreXAttrKey(),
+          converter.marshal(td).getBytes());
+      } catch (IOException | GenericException e) {
+        throw new ProvenanceException(RESTCodes.ProvenanceErrorCode.FS_ERROR, Level.WARNING,
+          "hopsfs - set xattr - training dataset - error", "hopsfs - set xattr - training dataset - error", e);
+      }
     } finally {
       if(udfso != null) {
         dfs.closeDfsClient(udfso);
@@ -290,19 +288,29 @@ public class HopsFSProvenanceController {
     }
   }
   
-  private List<ProvFeatureDTO> fromFeatures(List<FeatureDTO> features) {
-    List<ProvFeatureDTO> result = new LinkedList<>();
-    for(FeatureDTO feature : features) {
-      result.add(new ProvFeatureDTO(feature.getFeaturegroup(), feature.getName(), feature.getVersion()));
+  //TODO - featurestore without knowing the featurestoreId I can't split them
+  private List<ProvFeaturegroupDTO.Base> fromTrainingDataset(TrainingDatasetDTO trainingDatasetDTO) {
+    List<ProvFeaturegroupDTO.Base> result = new LinkedList<>();
+    Map<String, ProvFeaturegroupDTO.Base> featuregroups = new HashMap<>();
+    for(FeatureDTO feature : trainingDatasetDTO.getFeatures()) {
+      ProvFeaturegroupDTO.Base featuregroup = featuregroups.get(feature.getFeaturegroup());
+      if(featuregroup == null) {
+        featuregroup = new ProvFeaturegroupDTO.TrainingDataset(trainingDatasetDTO.getFeaturestoreId(),
+          feature.getFeaturegroup(), feature.getVersion());
+        featuregroups.put(feature.getFeaturegroup(), featuregroup);
+        result.add(featuregroup);
+      }
+      featuregroup.addFeature(feature.getName());
     }
     return result;
   }
   
-  private List<ProvFeatureDTO> fromFeatures(FeaturegroupDTO featuregroup) {
-    List<ProvFeatureDTO> result = new LinkedList<>();
+  private ProvFeaturegroupDTO.Featuregroup fromFeaturegroup(FeaturegroupDTO featuregroup) {
+    List<String> features = new LinkedList<>();
     for(FeatureDTO feature : featuregroup.getFeatures()) {
-      result.add(new ProvFeatureDTO(featuregroup.getName(), feature.getName(), featuregroup.getVersion()));
+      features.add(feature.getName());
     }
-    return result;
+    return new ProvFeaturegroupDTO.Featuregroup(featuregroup.getFeaturestoreId(), featuregroup.getDescription(),
+      featuregroup.getCreated(), featuregroup.getCreator(), features);
   }
 }

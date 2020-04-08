@@ -69,13 +69,6 @@ describe "On #{ENV['OS']}" do
     clean_all_test_projects
   end
 
-  def fix_json(json)
-    json1 = json.gsub(/([a-zA-Z_1-9]+)=/, '"\1"=')
-    json2 = json1.gsub(/=([a-zA-Z_1-9]+)/, '="\1"')
-    json3 = json2.gsub('=', ':')
-    json4 = JSON.parse(json3)
-  end
-
   describe 'test provenance auxiliary mechanisms' do
     it 'index cleaning' do
       prov_wait_for_epipe
@@ -888,7 +881,7 @@ describe "On #{ENV['OS']}" do
           #pp experiment
           prov_xattr = experiment["map"]["entry"].select { |e| e["key"] == "xattr_prov"}
           expect(prov_xattr.length).to eq 1
-          fixed_json = fix_json(prov_xattr[0]["value"])
+          fixed_json = fix_search_xattr_json(prov_xattr[0]["value"])
           test_xattr_field = fixed_json["test_xattr_string"]["raw"]
           expect(test_xattr_field).to eq @xattrV4
         end
@@ -930,7 +923,7 @@ describe "On #{ENV['OS']}" do
 
           prov_xattr = experiment["map"]["entry"].select { |e| e["key"] == "xattr_prov"}
           expect(prov_xattr.length).to eq 1
-          fixed_json = fix_json(prov_xattr[0]["value"])
+          fixed_json = fix_search_xattr_json(prov_xattr[0]["value"])
           test_xattr_field = fixed_json[xattr_key]["value"]
           expect(test_xattr_field).to eq @xattrV3
         end
@@ -949,7 +942,7 @@ describe "On #{ENV['OS']}" do
           #pp experiment
           prov_xattr = experiment["map"]["entry"].select { |e| e["key"] == "xattr_prov"}
           expect(prov_xattr.length).to eq 1
-          fixed_json = fix_json(prov_xattr[0]["value"])
+          fixed_json = fix_search_xattr_json(prov_xattr[0]["value"])
           test_xattr_field = fixed_json[xattr_key]["value"]
           expect(test_xattr_field).to eq @xattrV2
         end
@@ -967,7 +960,7 @@ describe "On #{ENV['OS']}" do
           #pp experiment
           prov_xattr = experiment["map"]["entry"].select { |e| e["key"] == "xattr_prov"}
           expect(prov_xattr.length).to eq 1
-          fixed_json = fix_json(prov_xattr[0]["value"])
+          fixed_json = fix_search_xattr_json(prov_xattr[0]["value"])
           test_xattr_field = fixed_json[xattr_key]["value"]
           expect(test_xattr_field).to eq @xattrV1
         end
