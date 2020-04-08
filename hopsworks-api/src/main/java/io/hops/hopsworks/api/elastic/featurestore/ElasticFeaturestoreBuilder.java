@@ -54,14 +54,14 @@ public class ElasticFeaturestoreBuilder {
   @EJB
   private HopsworksJAXBContext converter;
   
-  public ElasticFeaturestoreDTO build(Users user, ElasticFeaturestoreRequest req, Integer projectId)
+  public ElasticFeaturestoreDTO build(ElasticFeaturestoreRequest req, Integer projectId)
     throws ElasticException, ServiceException, GenericException {
     Project project = projectFacade.find(projectId);
     Map<FeaturestoreDocType, Set<Integer>> searchProjects
       = dataAccessCtrl.featurestoreSearchContext(project, req.getDocType());
     Map<FeaturestoreDocType, SearchResponse> response
       = elasticCtrl.featurestoreSearch(req.getTerm(), searchProjects, req.getFrom(), req.getSize());
-    ElasticFeaturestoreDTO result = parseResult(response, accessFromSharedProjects(user));
+    ElasticFeaturestoreDTO result = parseResult(response, accessFromLocalProjects(project));
     result.setFeaturegroupsFrom(req.getFrom());
     result.setTrainingdatasetsFrom(req.getFrom());
     result.setFeaturesFrom(req.getFrom());
@@ -184,6 +184,10 @@ public class ElasticFeaturestoreBuilder {
     field = field.replace("<em>", "");
     field = field.replace("</em>", "");
     return field;
+  }
+  
+  private ProjectAccessCtrl accessFromLocalProjects(Project project) {
+    return (item, elasticHit) -> item.addAccessProject(project.getId(), project.getName());
   }
   
   private ProjectAccessCtrl accessFromSharedProjects(Users user) {

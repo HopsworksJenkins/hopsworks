@@ -237,8 +237,6 @@ public class ElasticService {
       throw new IllegalArgumentException("One or more required parameters were not provided.");
     }
   
-    Users user = jWTHelper.getUserPrincipal(sc);
-    
     int fromI;
     int sizeI;
     
@@ -249,7 +247,7 @@ public class ElasticService {
       throw new GenericException(RESTCodes.GenericErrorCode.ILLEGAL_ARGUMENT,
         Level.INFO, "bad pagination params.");
     }
-    ElasticFeaturestoreDTO dto = elasticFeaturestoreBuilder.build(user,
+    ElasticFeaturestoreDTO dto = elasticFeaturestoreBuilder.build(
       new ElasticFeaturestoreRequest(searchTerm, docType, fromI, sizeI), projectId);
     return Response.ok().entity(dto).build();
   }
