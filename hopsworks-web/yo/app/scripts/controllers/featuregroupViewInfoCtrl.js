@@ -38,6 +38,7 @@ angular.module('hopsWorksApp')
             self.settings = null;
             self.sampleWorking = false;
             self.sizeWorking = false;
+            self.loadingTags = false;
             self.size = "Not fetched"
             self.offlineSchema ="Not fetched";
             self.onlineSchema = "Not fetched";
@@ -49,8 +50,50 @@ angular.module('hopsWorksApp')
             self.offlineSample = []
             self.onlineSampleColumns = []
             self.onlineSample = []
+            self.attachedTags = {};
 
             self.customMetadata = null;
+
+            /**
+             * Get featuregroup tags
+             */
+            self.fetchTags = function () {
+                self.loadingTags = true;
+                FeaturestoreService.getFeaturegroupTags(self.projectId, self.featurestore, self.selectedFeaturegroup).then(
+                    function (success) {
+                        self.loadingTags = false;
+                        self.attachedTags = JSON.parse(success.data.items[0].value);
+                      },
+                    function (error) {
+                        self.attachedTags = {};
+                        self.loadingTags = false;
+                        if(error.status !== 422) {
+                            if (typeof error.data.usrMsg !== 'undefined') {
+                                growl.error(error.data.usrMsg, {title: error.data.errorMsg, ttl: 8000});
+                            } else {
+                                growl.error("", {title: error.data.errorMsg, ttl: 8000});
+                            }
+                        }
+                    });
+            };
+
+            /**
+             * Save featuregroup tags
+             */
+            self.saveTags = function() {
+                FeaturestoreService.updateFeaturegroupTags(self.projectId, self.featurestore, self.selectedFeaturegroup, self.attachedTags).then(
+                    function (success) {
+                    },
+                    function (error) {
+                        if(error.status !== 404) {
+                            if (typeof error.data.usrMsg !== 'undefined') {
+                                growl.error(error.data.usrMsg, {title: error.data.errorMsg, ttl: 8000});
+                            } else {
+                                growl.error("", {title: error.data.errorMsg, ttl: 8000});
+                            }
+                        }
+                    });
+            };
 
             /**
              * Get the API code to retrieve the featuregroup with the Python API
@@ -58,6 +101,15 @@ angular.module('hopsWorksApp')
             self.getPythonCode = function () {
                 var codeStr = "from hops import featurestore\n"
                 codeStr = codeStr + "featurestore.get_featuregroup('" + self.selectedFeaturegroup.name + "')"
+                return codeStr
+            };
+
+            /**
+             * Get the API code to retrieve the featuregroup with the Scala API
+             */
+            self.getScalaCode = function () {
+                var codeStr = "import io.hops.util.Hops\n"
+                codeStr = codeStr + "Hops.getFeaturegroup(\"" + self.selectedFeaturegroup.name + "\").read()"
                 return codeStr
             };
 
@@ -124,16 +176,6 @@ angular.module('hopsWorksApp')
                 return colName.replace(self.selectedFeaturegroup.name + "_" + self.selectedFeaturegroup.version + ".", "")
             }
 
-
-            /**
-             * Get the API code to retrieve the featuregroup with the Scala API
-             */
-            self.getScalaCode = function () {
-                var codeStr = "import io.hops.util.Hops\n"
-                codeStr = codeStr + "Hops.getFeaturegroup(\"" + self.selectedFeaturegroup.name + "\").read()"
-                return codeStr
-            };
-
             /**
              * Fetch schema from Hive by making a REST call to Hopsworks
              */
@@ -192,16 +234,6 @@ angular.module('hopsWorksApp')
                 });
             };
 
-            /**
-             * Get custom metadata for feature groups
-             */
-            self.fetchCustomMetadata = function() {
-                FeaturestoreService.getFeaturegroupCustomMetadata(self.projectId, self.featurestore, self.selectedFeaturegroup).then(
-                    function (success) {
-                        self.customMetadata = success.data.items;
-                    });
-            };
-
             self.toggle = function(selectedFeatureGroup) {
                 if (self.selectedFeaturegroup
                     && self.selectedFeaturegroup.id === selectedFeatureGroup.id
@@ -243,7 +275,7 @@ angular.module('hopsWorksApp')
                     self.fetchSchema();
                     self.fetchSize();
                     self.fetchSample();
-                    self.fetchCustomMetadata();
+                    self.fetchTags();
                 }
 
             };

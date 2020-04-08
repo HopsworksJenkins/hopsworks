@@ -24,7 +24,8 @@ import io.hops.hopsworks.api.filter.apiKey.ApiKeyRequired;
 import io.hops.hopsworks.api.jwt.JWTHelper;
 import io.hops.hopsworks.api.metadata.XAttrDTO;
 import io.hops.hopsworks.api.metadata.XAttrsBuilder;
-import io.hops.hopsworks.api.metadata.XAttrsController;
+import io.hops.hopsworks.common.featurestore.tag.FeaturegroupTagControllerIface;
+import io.hops.hopsworks.common.hdfs.xattrs.XAttrsController;
 import io.hops.hopsworks.common.api.ResourceRequest;
 import io.hops.hopsworks.common.dao.user.activity.ActivityFacade;
 import io.hops.hopsworks.common.featurestore.FeaturestoreController;
@@ -56,6 +57,7 @@ import javax.ejb.EJB;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -105,6 +107,8 @@ public class FeaturegroupService {
   private XAttrsController xattrsController;
   @EJB
   private XAttrsBuilder xattrsBuilder;
+  @Inject
+  private FeaturegroupTagControllerIface tagControllerIface;
   
   private Project project;
   private Featurestore featurestore;
@@ -553,40 +557,32 @@ public class FeaturegroupService {
       new GenericEntity<FeaturegroupDTO>(createdFeaturegroupDTO) {};
     return noCacheResponse.getNoCacheResponseBuilder(Response.Status.CREATED).entity(featuregroupGeneric).build();
   }
-  
-  @ApiOperation( value = "Create or Update an extended attribute for a " +
-      "feature group.", response = XAttrDTO.class)
+
+  @ApiOperation( value = "Create or update tags for a featuregroup", response = XAttrDTO.class)
   @PUT
-  @Path("/{featuregroupId}/xattrs/{xattrName}")
+  @Path("/{featuregroupId}/tags")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
   @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
   @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
-  public Response putMetadata(@Context
+  public Response putTags(@Context
       SecurityContext sc, @Context UriInfo uriInfo,
-      @PathParam("xattrName") String xattrName,
       @PathParam("featuregroupId") Integer featuregroupId,
       String metaObj) throws DatasetException,
       MetadataException, FeaturestoreException {
     verifyIdProvided(featuregroupId);
     Users user = jWTHelper.getUserPrincipal(sc);
-    
-    FeaturegroupDTO featuregroupDTO =
-        featuregroupController.getCachedFeaturegroupDTO(featurestore,
-            featuregroupId);
-    
-    final String path = featuregroupDTO.getLocation();
-    
+
     Response.Status status = Response.Status.OK;
-    if(xattrsController.addXAttr(project, user, path, xattrName, metaObj)){
+    if(tagControllerIface.createOrUpdate(project, user, featurestore, featuregroupId, metaObj)){
       status = Response.Status.CREATED;
     }
     
     ResourceRequest resourceRequest =
         new ResourceRequest(ResourceRequest.Name.XATTRS);
     XAttrDTO dto = xattrsBuilder.build(uriInfo, resourceRequest, project,
-        featurestore.getId(), featuregroupId, xattrName);
+        featurestore.getId(), featuregroupId, "tags");
   
     UriBuilder builder = uriInfo.getAbsolutePathBuilder();
     if(status == Response.Status.CREATED) {
@@ -595,101 +591,49 @@ public class FeaturegroupService {
       return Response.ok(builder.build()).entity(dto).build();
     }
   }
-  
-  @ApiOperation( value = "Get extended attributes attached to a featuregroup.",
-      response = XAttrDTO.class)
+
+  @ApiOperation( value = "Get all tags attached to a featuregroup", response = XAttrDTO.class)
   @GET
-  @Path("/{featuregroupId}/xattrs/{xattrName}")
+  @Path("/{featuregroupId}/tags")
   @Produces(MediaType.APPLICATION_JSON)
   @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
   @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
   @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
-  public Response getMetadata(@Context SecurityContext sc,
-      @Context UriInfo uriInfo,
-      @PathParam("xattrName") String xattrName,
-      @PathParam("featuregroupId") Integer featuregroupId)
-      throws DatasetException, MetadataException, FeaturestoreException {
-    verifyIdProvided(featuregroupId);
-    Users user = jWTHelper.getUserPrincipal(sc);
-  
-    FeaturegroupDTO featuregroupDTO =
-        featuregroupController.getCachedFeaturegroupDTO(featurestore,
-            featuregroupId);
-    
-    final String path = featuregroupDTO.getLocation();
-    
-    Map<String, String> result = xattrsController.getXAttrs(project, user,
-        path, xattrName);
-    
-    Response.Status status = result.isEmpty() ?
-        Response.Status.NOT_FOUND: Response.Status.ACCEPTED;
-    ResourceRequest resourceRequest =
-        new ResourceRequest(ResourceRequest.Name.XATTRS);
-    XAttrDTO dto = xattrsBuilder.build(uriInfo, resourceRequest, project,
-        featurestore.getId(), featuregroupId, result);
-    return Response.status(status).entity(dto).build();
-  }
-  
-  @ApiOperation( value = "Get all extended attributes attached to a " +
-      "featuregroup.",
-      response = XAttrDTO.class)
-  @GET
-  @Path("/{featuregroupId}/xattrs")
-  @Produces(MediaType.APPLICATION_JSON)
-  @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
-  @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
-  @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
-  public Response getAllMetadata(@Context SecurityContext sc,
+  public Response getTags(@Context SecurityContext sc,
       @Context UriInfo uriInfo,
       @PathParam("featuregroupId") Integer featuregroupId)
       throws DatasetException, MetadataException, FeaturestoreException {
     verifyIdProvided(featuregroupId);
     Users user = jWTHelper.getUserPrincipal(sc);
-    
-    FeaturegroupDTO featuregroupDTO =
-        featuregroupController.getCachedFeaturegroupDTO(featurestore,
-            featuregroupId);
-    
-    final String path = featuregroupDTO.getLocation();
-    
-    Map<String, String> result = xattrsController.getXAttrs(project, user,
-        path, null);
-    
-    Response.Status status = result.isEmpty() ?
-        Response.Status.NOT_FOUND: Response.Status.ACCEPTED;
+
+    Map<String, String> result = tagControllerIface.get(project, user, featurestore, featuregroupId);
+
     ResourceRequest resourceRequest =
         new ResourceRequest(ResourceRequest.Name.XATTRS);
     XAttrDTO dto = xattrsBuilder.build(uriInfo, resourceRequest, project,
         featurestore.getId(), featuregroupId, result);
-    return Response.status(status).entity(dto).build();
+    return Response.status(Response.Status.OK).entity(dto).build();
   }
-  
-  @ApiOperation( value = "Delete the extended attributes attached to a " +
-      "featuregroup.")
+
+  @ApiOperation( value = "Delete all attached tags to featuregroup")
   @DELETE
-  @Path("/{featuregroupId}/xattrs/{xattrName}")
+  @Path("/{featuregroupId}/tags")
   @Produces(MediaType.APPLICATION_JSON)
   @AllowedProjectRoles({AllowedProjectRoles.DATA_SCIENTIST, AllowedProjectRoles.DATA_OWNER})
   @JWTRequired(acceptedTokens={Audience.API, Audience.JOB}, allowedUserRoles={"HOPS_ADMIN", "HOPS_USER"})
   @ApiKeyRequired( acceptedScopes = {ApiScope.FEATURESTORE}, allowedUserRoles = {"HOPS_ADMIN", "HOPS_USER"})
-  public Response delete(@Context SecurityContext sc,
-      @PathParam("xattrName") String xattrName,
+  public Response deleteTags(@Context SecurityContext sc,
       @PathParam("featuregroupId") Integer featuregroupId)
       throws DatasetException, MetadataException, FeaturestoreException {
     verifyIdProvided(featuregroupId);
     Users user = jWTHelper.getUserPrincipal(sc);
-    
-    FeaturegroupDTO featuregroupDTO =
-        featuregroupController.getCachedFeaturegroupDTO(featurestore,
-            featuregroupId);
-  
-    final String path = featuregroupDTO.getLocation();
     
     Response.Status status = Response.Status.NOT_FOUND;
-    if(xattrsController.removeXAttr(project, user, path, xattrName)){
+    if(tagControllerIface.delete(project, user, featurestore, featuregroupId)) {
       status = Response.Status.NO_CONTENT;
     }
     return Response.status(status).build();
   }
   
 }
+
