@@ -28,7 +28,6 @@ import io.hops.hopsworks.persistence.entity.project.Project;
 import io.hops.hopsworks.common.dao.project.team.ProjectTeamFacade;
 import io.hops.hopsworks.common.dao.user.UserFacade;
 import io.hops.hopsworks.persistence.entity.user.Users;
-import io.hops.hopsworks.common.elastic.ElasticController;
 import io.hops.hopsworks.common.hdfs.DistributedFileSystemOps;
 import io.hops.hopsworks.common.hdfs.DistributedFsService;
 import io.hops.hopsworks.common.hdfs.HdfsUsersController;
@@ -39,6 +38,7 @@ import io.hops.hopsworks.common.util.HopsUtils;
 import io.hops.hopsworks.common.util.OSProcessExecutor;
 import io.hops.hopsworks.common.util.ProcessDescriptor;
 import io.hops.hopsworks.common.util.ProcessResult;
+import io.hops.hopsworks.common.util.ProjectUtils;
 import io.hops.hopsworks.common.util.Settings;
 import io.hops.hopsworks.exceptions.ServiceException;
 import io.hops.hopsworks.restutils.RESTCodes;
@@ -84,8 +84,6 @@ public class JupyterController {
   @Inject
   private JupyterManager jupyterManager;
   @EJB
-  private ElasticController elasticController;
-  @EJB
   private CertificateMaterializer certificateMaterializer;
   @EJB
   private DistributedFsService dfsService;
@@ -103,30 +101,43 @@ public class JupyterController {
   private JupyterJWTManager jupyterJWTManager;
   @Inject
   private JupyterNbVCSController jupyterNbVCSController;
+  @EJB
+  private ProjectUtils projectUtils;
 
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   public String convertIPythonNotebook(String hdfsUsername, String notebookPath, Project project, String pyPath,
                                      NotebookConversion notebookConversion)  throws ServiceException {
 
-    String conversionDir = DigestUtils.sha256Hex(Integer.toString(ThreadLocalRandom.current().nextInt()));
+    File baseDir = new File(settings.getStagingDir() + settings.CONVERSION_DIR);
+    if(!baseDir.exists()){
+      baseDir.mkdir();
+    }
+    File conversionDir = new File(baseDir, DigestUtils.
+        sha256Hex(Integer.toString(ThreadLocalRandom.current().nextInt())));
+    conversionDir.mkdir();
     notebookPath = notebookPath.replace(" ", "\\ ");
     pyPath = pyPath.replace(" " , "\\ ");
 
-    String prog = settings.getHopsworksDomainDir() + "/bin/convert-ipython-notebook.sh";
+    String prog = settings.getSudoersDir() + "/convert-ipython-notebook.sh";
     ProcessDescriptor processDescriptor = new ProcessDescriptor.Builder()
+        .addCommand("/usr/bin/sudo")
         .addCommand(prog)
         .addCommand(notebookPath)
         .addCommand(hdfsUsername)
         .addCommand(settings.getAnacondaProjectDir(project))
         .addCommand(pyPath)
-        .addCommand(conversionDir)
+        .addCommand(conversionDir.getAbsolutePath())
         .addCommand(notebookConversion.name())
+        .addCommand(projectUtils.getFullDockerImageName(project))
         .setWaitTimeout(60l, TimeUnit.SECONDS) //on a TLS VM the timeout needs to be greater than 20s
         .redirectErrorStream(true)
         .build();
 
     LOGGER.log(Level.FINE, processDescriptor.toString());
+    HdfsUsers user = hdfsUsersFacade.findByName(hdfsUsername);
     try {
+      certificateMaterializer.
+          materializeCertificatesLocalCustomDir(user.getUsername(), project.getName(), conversionDir.getAbsolutePath());
       ProcessResult processResult = osProcessExecutor.execute(processDescriptor);
       if (!processResult.processExited() || processResult.getExitCode() != 0) {
         throw new ServiceException(RESTCodes.ServiceErrorCode.IPYTHON_CONVERT_ERROR,  Level.SEVERE,
@@ -145,34 +156,37 @@ public class JupyterController {
     } catch (IOException ex) {
       throw new ServiceException(RESTCodes.ServiceErrorCode.IPYTHON_CONVERT_ERROR, Level.SEVERE, null, ex.getMessage(),
           ex);
+    } finally {
+      certificateMaterializer.removeCertificatesLocalCustomDir(user.getUsername(), project.getName(), conversionDir.
+          getAbsolutePath());
     }
   }
 
-  public void shutdownOrphan(Long pid, Integer port) throws ServiceException {
+  public void shutdownOrphan(String cid, Integer port) throws ServiceException {
     try {
-      jupyterManager.stopOrphanedJupyterServer(pid, port);
+      jupyterManager.stopOrphanedJupyterServer(cid, port);
     } finally {
-      jupyterJWTManager.cleanJWT(pid, port);
+      jupyterJWTManager.cleanJWT(cid, port);
     }
   }
 
   public void shutdownQuietly(Project project, String hdfsUser, Users user, String secret,
-      long pid, int port) {
+      String cid, int port) {
     try {
-      shutdown(project, hdfsUser, user, secret, pid, port, true);
+      shutdown(project, hdfsUser, user, secret, cid, port, true);
     } catch (Exception e) {
       LOGGER.log(Level.INFO, "Encountered exception while cleaning up", e);
     }
-    jupyterJWTManager.cleanJWT(pid, port);
+    jupyterJWTManager.cleanJWT(cid, port);
   }
   
   public void shutdown(Project project, String hdfsUser, Users user, String secret,
-      long pid, int port) throws ServiceException {
-    shutdown(project, hdfsUser, user, secret, pid, port, false);
+      String cid, int port) throws ServiceException {
+    shutdown(project, hdfsUser, user, secret, cid, port, false);
   }
   
   public void shutdown(Project project, String hdfsUser, Users user, String secret,
-                              long pid, int port, boolean quiet) throws ServiceException {
+                              String cid, int port, boolean quiet) throws ServiceException {
     // We need to stop the jupyter notebook server with the PID
     // If we can't stop the server, delete the Entity bean anyway
 
@@ -214,7 +228,7 @@ public class JupyterController {
           }
         }
       }
-      jupyterManager.stopJupyterServer(project, user, hdfsUser, jupyterHomePath, pid, port);
+      jupyterManager.stopJupyterServer(project, user, hdfsUser, jupyterHomePath, cid, port);
     } finally {
       String[] project_user = hdfsUser.split(HdfsUsersController.USER_NAME_DELIMITER);
       DistributedFileSystemOps dfso = dfsService.getDfsOps();
@@ -229,7 +243,7 @@ public class JupyterController {
         }
       }
       FileUtils.deleteQuietly(new File(jupyterHomePath));
-      jupyterJWTManager.cleanJWT(pid, port);
+      jupyterJWTManager.cleanJWT(cid, port);
       livyController.deleteAllLivySessions(hdfsUser);
     }
   }
@@ -253,7 +267,7 @@ public class JupyterController {
       String username = hdfsUsersController.getUserName(hdfsUser.getName());
       Users user = userFacade.findByUsername(username);
       shutdown(project, hdfsUser.getName(), user,
-        jp.getSecret(), jp.getPid(), jp.getPort());
+        jp.getSecret(), jp.getCid(), jp.getPort());
     }
     jupyterManager.projectCleanup(project);
   }
