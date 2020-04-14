@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 public final class JupyterJWT {
   public final Project project;
   public final Users user;
-  public final PidAndPort pidAndPort;
+  public final CidAndPort pidAndPort;
   public final LocalDateTime expiration;
   public Path tokenFile;
   public String token;
@@ -35,7 +35,7 @@ public final class JupyterJWT {
     this.tokenFile = jupyterJWT.tokenFile;
   }
   
-  public JupyterJWT(Project project, Users user, PidAndPort pidAndPort, LocalDateTime expiration) {
+  public JupyterJWT(Project project, Users user, CidAndPort pidAndPort, LocalDateTime expiration) {
     this.project = project;
     this.user = user;
     this.pidAndPort = pidAndPort;
